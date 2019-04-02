@@ -16,6 +16,7 @@ dependencies {
     compile("io.javalin:javalin:2.8.0")
     compile("org.slf4j:slf4j-simple:1.7.26")
     compile(kotlin("script-runtime"))
+    compile("com.fasterxml.jackson.core:jackson-databind:2.9.8")
 }
 
 tasks.withType<KotlinCompile> {
