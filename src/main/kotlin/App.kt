@@ -1,6 +1,7 @@
 package space.anity
 
 import io.javalin.Javalin
+import io.javalin.NotFoundResponse
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -15,12 +16,18 @@ fun main(args: Array<String>) {
 
     app.get("/files/*") { ctx ->
         var files = ""
-        Files.list(Paths.get("$fileHome${ctx.splats()[0]}/")).forEach {
-            val fileName = it.toString().drop(fileHome.length + (if (ctx.splats()[0].isNotEmpty()) ctx.splats()[0].length + 1 else 0))
-            val filePath = "$fileHome${it.toString().drop(fileHome.length)}"
-            files += if (File("$fileHome${it.toString().drop(fileHome.length)}").isDirectory) "$fileName/\n" else "$fileName\n"
+        try {
+            Files.list(Paths.get("$fileHome/${ctx.splats()[0]}/")).forEach {
+                val fileName = it.toString()
+                    .drop(fileHome.length + (if (ctx.splats()[0].isNotEmpty()) ctx.splats()[0].length + 1 else 0))
+                val filePath = "$fileHome${it.toString().drop(fileHome.length)}"
+                files += if (File(filePath).isDirectory) "$fileName/\n" else "$fileName\n"
+            }
+            ctx.result(files)
+        } catch (_: java.nio.file.NoSuchFileException) {
+            throw NotFoundResponse("File or directory does not exist")
         }
-        ctx.result(files)
+
         //File("test").writeText(ctx.splat(0)!!)
     }
 }
