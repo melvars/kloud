@@ -28,16 +28,11 @@ fun main() {
         FileRenderer { filepath, model -> Rocker.template(filepath).bind(model).render().toString() }, ".rocker.html"
     )
 
-    // TODO: Fix rocker templating
-    app.get("/test") { ctx ->
-        ctx.render("test.rocker.html", model("message", "Testy testy!"))
-    }
-
     /**
      * Sends a json object of filenames in [fileHome]s
      * TODO: Fix possible security issue with "../"
      */
-    app.get("/api/files/*") { ctx ->
+    app.get("/files/*") { ctx ->
         val files = ArrayList<String>()
         try {
             Files.list(Paths.get("$fileHome/${ctx.splats()[0]}/")).forEach {
@@ -46,7 +41,7 @@ fun main() {
                 val filePath = "$fileHome${it.toString().drop(fileHome.length)}"
                 files.add(if (File(filePath).isDirectory) "$fileName/" else fileName)
             }
-            ctx.json(files)
+            ctx.render("files.rocker.html", model("files", files))
         } catch (_: java.nio.file.NoSuchFileException) {
             throw NotFoundResponse("Error: File or directory does not exist.")
         }
@@ -61,7 +56,7 @@ fun main() {
      * Receives and saves multipart media data
      * TODO: Fix possible security issue with "../"
      */
-    app.post("/api/upload") { ctx ->
+    app.post("/upload") { ctx ->
         ctx.uploadedFiles("files").forEach { (contentType, content, name, extension) ->
             if (ctx.queryParam("dir") !== null) {
                 FileUtil.streamToFile(content, "files/${ctx.queryParam("dir")}/$name")
