@@ -1,47 +1,42 @@
 package space.anity
 
-import com.fizzed.rocker.Rocker
+import com.fizzed.rocker.*
 import io.javalin.*
 import io.javalin.core.util.*
 import io.javalin.rendering.*
 import io.javalin.rendering.template.TemplateUtil.model
-import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.SchemaUtils
-import org.jetbrains.exposed.sql.Table
-import org.jetbrains.exposed.sql.transactions.TransactionManager
-import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.transactions.*
 import java.io.*
 import java.nio.file.*
-import java.sql.Connection
+import java.sql.*
 
 
-fun main(args: Array<String>) {
+fun main() {
+    val app = Javalin.create().enableStaticFiles("../resources/").start(7000)
+    val fileHome = "files"
 
-    // TODO outsource to class
-    val db : Database = Database.connect("jdbc:sqlite:main.db", "org.sqlite.JDBC")
+    // TODO: Move to own database class
+    val db: Database = Database.connect("jdbc:sqlite:main.db", "org.sqlite.JDBC")
     TransactionManager.manager.defaultIsolationLevel = Connection.TRANSACTION_SERIALIZABLE
 
     transaction {
         SchemaUtils.createMissingTablesAndColumns(FileLocation, UserData, General)
     }
 
-
-    val fileHome = "files"
-    /*JavalinRenderer.register(
+    JavalinRenderer.register(
         FileRenderer { filepath, model -> Rocker.template(filepath).bind(model).render().toString() }, ".rocker.html"
-    )*/
-
-    val app = Javalin.create().enableStaticFiles("../resources/").start(7000)
-
+    )
 
     // TODO: Fix rocker templating
     app.get("/test") { ctx ->
-        val templateTest = Rocker.template("test.rocker.html").bind("message", "Testy testy!").render().toString()
-        println(templateTest)
-        // ctx.render("views/test.rocker.html", model("message", "Testy testy!"))
+        ctx.render("test.rocker.html", model("message", "Testy testy!"))
     }
 
-    // TODO: Fix possible security issue with "../"
+    /**
+     * Sends a json object of filenames in [fileHome]s
+     * TODO: Fix possible security issue with "../"
+     */
     app.get("/api/files/*") { ctx ->
         val files = ArrayList<String>()
         try {
@@ -57,9 +52,15 @@ fun main(args: Array<String>) {
         }
     }
 
+    /**
+     * Redirects to corresponding html file
+     */
     app.get("/upload") { ctx -> ctx.redirect("/views/upload.html") }
 
-    // TODO: Fix possible security issue with "../"
+    /**
+     * Receives and saves multipart media data
+     * TODO: Fix possible security issue with "../"
+     */
     app.post("/api/upload") { ctx ->
         ctx.uploadedFiles("files").forEach { (contentType, content, name, extension) ->
             if (ctx.queryParam("dir") !== null) {
@@ -71,22 +72,30 @@ fun main(args: Array<String>) {
     }
 }
 
-// DB tables
+/**
+ * Database table for the file location indexing
+ */
 object FileLocation : Table() {
     val id = integer("id").autoIncrement().primaryKey()
     val location = text("location")
 }
 
+/**
+ * Database table to index the users with their regarding passwords
+ */
 object UserData : Table() {
     // only for multiple users: val id = integer("id").autoIncrement().primaryKey()
-    val uname = varchar("uname", 24).primaryKey()  // remove if ID
-    val pwd = varchar("pwd", 64)
+    val username = varchar("username", 24).primaryKey()  // remove if ID
+    val password = varchar("password", 64)
 }
 
+/**
+ * Database table storing general data/states
+ */
 object General : Table() {
     // redundant: val id = integer("id").autoIncrement().primaryKey()
-    val isSetup = integer("isSetup").primaryKey()  // remove pKey if ID  // boolean -> 0:1
-    // TODO if not isSetup show other front page
+    val initialUse = integer("initialUse").primaryKey()  // remove pKey if ID  // boolean -> 0:1
+    // TODO: If not isSetup show other front page
 }
 
 
