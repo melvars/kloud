@@ -35,13 +35,24 @@ fun main() {
     app.get("/files/*") { ctx ->
         val files = ArrayList<String>()
         try {
-            Files.list(Paths.get("$fileHome/${ctx.splats()[0]}/")).forEach {
-                val fileName = it.toString()
-                    .drop(fileHome.length + (if (ctx.splats()[0].isNotEmpty()) ctx.splats()[0].length + 2 else 1))
-                val filePath = "$fileHome${it.toString().drop(fileHome.length)}"
-                files.add(if (File(filePath).isDirectory) "$fileName/" else fileName)
-            }
-            ctx.render("files.rocker.html", model("files", files))
+            if (File("$fileHome/${ctx.splats()[0]}").isDirectory) {
+                Files.list(Paths.get("$fileHome/${ctx.splats()[0]}/")).forEach {
+                    val fileName = it.toString()
+                        .drop(fileHome.length + (if (ctx.splats()[0].isNotEmpty()) ctx.splats()[0].length + 2 else 1))
+                    val filePath = "$fileHome${it.toString().drop(fileHome.length)}"
+                    files.add(if (File(filePath).isDirectory) "$fileName/" else fileName)
+                    ctx.render("files.rocker.html", model("files", files))
+                }
+            } else
+            // TODO: Fix square brackets at fileview content
+                ctx.render(
+                    "fileview.rocker.html", model(
+                        "content", Files.readAllLines(
+                            Paths.get("$fileHome/${ctx.splats()[0]}"),
+                            Charsets.UTF_8
+                        ).toString()
+                    )
+                )
         } catch (_: java.nio.file.NoSuchFileException) {
             throw NotFoundResponse("Error: File or directory does not exist.")
         }

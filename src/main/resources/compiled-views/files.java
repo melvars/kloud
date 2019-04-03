@@ -1,4 +1,3 @@
-
 import com.fizzed.rocker.RenderingException;
 import com.fizzed.rocker.runtime.DefaultRockerTemplate;
 import com.fizzed.rocker.runtime.PlainTextUnloadedClassLoader;
@@ -12,9 +11,6 @@ import java.util.ArrayList;
  */
 @SuppressWarnings("unused")
 public class files extends com.fizzed.rocker.runtime.DefaultRockerModel {
-
-    // argument @ [1:2]
-    private ArrayList files;
 
     static public com.fizzed.rocker.ContentType getContentType() {
         return com.fizzed.rocker.ContentType.HTML;
@@ -36,10 +32,8 @@ public class files extends com.fizzed.rocker.runtime.DefaultRockerModel {
         return new String[]{"files"};
     }
 
-    static public files template(ArrayList files) {
-        return new files()
-                .files(files);
-    }
+    // argument @ [1:2]
+    private ArrayList files;
 
     public files files(ArrayList files) {
         this.files = files;
@@ -50,6 +44,11 @@ public class files extends com.fizzed.rocker.runtime.DefaultRockerModel {
         return this.files;
     }
 
+    static public files template(ArrayList files) {
+        return new files()
+                .files(files);
+    }
+
     @Override
     protected DefaultRockerTemplate buildTemplate() throws RenderingException {
         // optimized for performance (via rocker.optimize flag; no auto reloading)
@@ -58,15 +57,18 @@ public class files extends com.fizzed.rocker.runtime.DefaultRockerModel {
 
     static public class Template extends com.fizzed.rocker.runtime.DefaultRockerTemplate {
 
-        // <li>
+        //     <a href=\"
         static private final byte[] PLAIN_TEXT_0_0;
-        // </li>\n
+        // \">
         static private final byte[] PLAIN_TEXT_1_0;
+        // </a><br>\n
+        static private final byte[] PLAIN_TEXT_2_0;
 
         static {
             PlainTextUnloadedClassLoader loader = PlainTextUnloadedClassLoader.tryLoad(files.class.getClassLoader(), files.class.getName() + "$PlainText", "UTF-8");
             PLAIN_TEXT_0_0 = loader.tryGet("PLAIN_TEXT_0_0");
             PLAIN_TEXT_1_0 = loader.tryGet("PLAIN_TEXT_1_0");
+            PLAIN_TEXT_2_0 = loader.tryGet("PLAIN_TEXT_2_0");
         }
 
         // argument @ [1:2]
@@ -93,12 +95,18 @@ public class files extends com.fizzed.rocker.runtime.DefaultRockerModel {
                         // PlainText @ [2:29]
                         __internal.aboutToExecutePosInTemplate(2, 29);
                         __internal.writeValue(PLAIN_TEXT_0_0);
-                        // ValueExpression @ [3:5]
-                        __internal.aboutToExecutePosInTemplate(3, 5);
+                        // ValueExpression @ [3:14]
+                        __internal.aboutToExecutePosInTemplate(3, 14);
                         __internal.renderValue(file, false);
-                        // PlainText @ [3:10]
-                        __internal.aboutToExecutePosInTemplate(3, 10);
+                        // PlainText @ [3:19]
+                        __internal.aboutToExecutePosInTemplate(3, 19);
                         __internal.writeValue(PLAIN_TEXT_1_0);
+                        // ValueExpression @ [3:21]
+                        __internal.aboutToExecutePosInTemplate(3, 21);
+                        __internal.renderValue(file, false);
+                        // PlainText @ [3:26]
+                        __internal.aboutToExecutePosInTemplate(3, 26);
+                        __internal.writeValue(PLAIN_TEXT_2_0);
                         // ForBlockEnd @ [2:1]
                         __internal.aboutToExecutePosInTemplate(2, 1);
                     } catch (com.fizzed.rocker.runtime.ContinueException e) {
@@ -113,8 +121,9 @@ public class files extends com.fizzed.rocker.runtime.DefaultRockerModel {
 
     private static class PlainText {
 
-        static private final String PLAIN_TEXT_0_0 = "<li>";
-        static private final String PLAIN_TEXT_1_0 = "</li>\n";
+        static private final String PLAIN_TEXT_0_0 = "    <a href=\"";
+        static private final String PLAIN_TEXT_1_0 = "\">";
+        static private final String PLAIN_TEXT_2_0 = "</a><br>\n";
 
     }
 
