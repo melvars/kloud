@@ -43,5 +43,31 @@ class DatabaseController(dbFileLocation: String = "main.db") {
         }
     }
 
+    fun createUser(uname :String, passwordHash :String) {
+        transaction {
+            UserData.insert {
+                it[username] = uname
+                it[password] = passwordHash
+            }
+        }
+    }
+
+    /*
+    fun selectUser(uname: String) :String {
+        var pwd :String
+
+        transaction {
+            UserData.select{UserData.username eq uname}.forEach {
+                pwd = it[UserData.password]
+            }
+        }
+
+        // return pwd
+    }
+
+    */
+
+
+
     // TODO add functions for database usage
 }
