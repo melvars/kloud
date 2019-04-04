@@ -5,28 +5,22 @@ import io.javalin.*
 import io.javalin.core.util.*
 import io.javalin.rendering.*
 import io.javalin.rendering.template.TemplateUtil.model
-import org.jetbrains.exposed.sql.*
-import org.jetbrains.exposed.sql.transactions.*
 import java.io.*
 import java.nio.file.*
-import java.sql.*
+
 
 
 fun main() {
     val app = Javalin.create().enableStaticFiles("../resources/").start(7000)
     val fileHome = "files"
 
-    // TODO: Move to own database class
-    val db: Database = Database.connect("jdbc:sqlite:main.db", "org.sqlite.JDBC")
-    TransactionManager.manager.defaultIsolationLevel = Connection.TRANSACTION_SERIALIZABLE
-
-    transaction {
-        SchemaUtils.createMissingTablesAndColumns(FileLocation, UserData, General)
-    }
-
     JavalinRenderer.register(
         FileRenderer { filepath, model -> Rocker.template(filepath).bind(model).render().toString() }, ".rocker.html"
     )
+
+    val db = DB()
+
+    // TODO: If not initialUse show setup page
 
     /**
      * Sends a json object of filenames in [fileHome]s
@@ -78,31 +72,7 @@ fun main() {
     }
 }
 
-/**
- * Database table for the file location indexing
- */
-object FileLocation : Table() {
-    val id = integer("id").autoIncrement().primaryKey()
-    val location = text("location")
-}
 
-/**
- * Database table to index the users with their regarding passwords
- */
-object UserData : Table() {
-    // only for multiple users: val id = integer("id").autoIncrement().primaryKey()
-    val username = varchar("username", 24).primaryKey()  // remove if ID
-    val password = varchar("password", 64)
-}
-
-/**
- * Database table storing general data/states
- */
-object General : Table() {
-    // redundant: val id = integer("id").autoIncrement().primaryKey()
-    val initialUse = integer("initialUse").primaryKey()  // remove pKey if ID  // boolean -> 0:1
-    // TODO: If not isSetup show other front page
-}
 
 
 

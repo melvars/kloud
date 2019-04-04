@@ -1,8 +1,12 @@
-import com.fizzed.rocker.RenderingException;
-import com.fizzed.rocker.runtime.DefaultRockerTemplate;
-import com.fizzed.rocker.runtime.PlainTextUnloadedClassLoader;
 
 import java.io.IOException;
+import com.fizzed.rocker.ForIterator;
+import com.fizzed.rocker.RenderingException;
+import com.fizzed.rocker.RockerContent;
+import com.fizzed.rocker.RockerOutput;
+import com.fizzed.rocker.runtime.DefaultRockerTemplate;
+import com.fizzed.rocker.runtime.PlainTextUnloadedClassLoader;
+// import @ [1:1]
 import java.util.ArrayList;
 
 /*
@@ -12,27 +16,13 @@ import java.util.ArrayList;
 @SuppressWarnings("unused")
 public class files extends com.fizzed.rocker.runtime.DefaultRockerModel {
 
-    static public com.fizzed.rocker.ContentType getContentType() {
-        return com.fizzed.rocker.ContentType.HTML;
-    }
+    static public com.fizzed.rocker.ContentType getContentType() { return com.fizzed.rocker.ContentType.HTML; }
+    static public String getTemplateName() { return "files.rocker.html"; }
+    static public String getTemplatePackageName() { return ""; }
+    static public String getHeaderHash() { return "-1618097059"; }
+    static public String[] getArgumentNames() { return new String[] { "files" }; }
 
-    static public String getTemplateName() {
-        return "files.rocker.html";
-    }
-
-    static public String getTemplatePackageName() {
-        return "";
-    }
-
-    static public String getHeaderHash() {
-        return "-1618097059";
-    }
-
-    static public String[] getArgumentNames() {
-        return new String[]{"files"};
-    }
-
-    // argument @ [1:2]
+    // argument @ [2:2]
     private ArrayList files;
 
     public files files(ArrayList files) {
@@ -46,7 +36,7 @@ public class files extends com.fizzed.rocker.runtime.DefaultRockerModel {
 
     static public files template(ArrayList files) {
         return new files()
-                .files(files);
+            .files(files);
     }
 
     @Override
@@ -57,7 +47,7 @@ public class files extends com.fizzed.rocker.runtime.DefaultRockerModel {
 
     static public class Template extends com.fizzed.rocker.runtime.DefaultRockerTemplate {
 
-        //     <a href=\"
+        // <a href=\"
         static private final byte[] PLAIN_TEXT_0_0;
         // \">
         static private final byte[] PLAIN_TEXT_1_0;
@@ -71,7 +61,7 @@ public class files extends com.fizzed.rocker.runtime.DefaultRockerModel {
             PLAIN_TEXT_2_0 = loader.tryGet("PLAIN_TEXT_2_0");
         }
 
-        // argument @ [1:2]
+        // argument @ [2:2]
         protected final ArrayList files;
 
         public Template(files model) {
@@ -85,34 +75,34 @@ public class files extends com.fizzed.rocker.runtime.DefaultRockerModel {
 
         @Override
         protected void __doRender() throws IOException, RenderingException {
-            // ForBlockBegin @ [2:1]
-            __internal.aboutToExecutePosInTemplate(2, 1);
+            // ForBlockBegin @ [3:1]
+            __internal.aboutToExecutePosInTemplate(3, 1);
             try {
                 final com.fizzed.rocker.runtime.IterableForIterator<String> __forIterator0 = new com.fizzed.rocker.runtime.IterableForIterator<String>(files);
                 while (__forIterator0.hasNext()) {
                     final String file = __forIterator0.next();
                     try {
-                        // PlainText @ [2:29]
-                        __internal.aboutToExecutePosInTemplate(2, 29);
+                        // PlainText @ [3:29]
+                        __internal.aboutToExecutePosInTemplate(3, 29);
                         __internal.writeValue(PLAIN_TEXT_0_0);
-                        // ValueExpression @ [3:14]
-                        __internal.aboutToExecutePosInTemplate(3, 14);
+                        // ValueExpression @ [4:10]
+                        __internal.aboutToExecutePosInTemplate(4, 10);
                         __internal.renderValue(file, false);
-                        // PlainText @ [3:19]
-                        __internal.aboutToExecutePosInTemplate(3, 19);
+                        // PlainText @ [4:15]
+                        __internal.aboutToExecutePosInTemplate(4, 15);
                         __internal.writeValue(PLAIN_TEXT_1_0);
-                        // ValueExpression @ [3:21]
-                        __internal.aboutToExecutePosInTemplate(3, 21);
+                        // ValueExpression @ [4:17]
+                        __internal.aboutToExecutePosInTemplate(4, 17);
                         __internal.renderValue(file, false);
-                        // PlainText @ [3:26]
-                        __internal.aboutToExecutePosInTemplate(3, 26);
+                        // PlainText @ [4:22]
+                        __internal.aboutToExecutePosInTemplate(4, 22);
                         __internal.writeValue(PLAIN_TEXT_2_0);
-                        // ForBlockEnd @ [2:1]
-                        __internal.aboutToExecutePosInTemplate(2, 1);
+                        // ForBlockEnd @ [3:1]
+                        __internal.aboutToExecutePosInTemplate(3, 1);
                     } catch (com.fizzed.rocker.runtime.ContinueException e) {
                         // support for continuing for loops
                     }
-                } // for end @ [2:1]
+                } // for end @ [3:1]
             } catch (com.fizzed.rocker.runtime.BreakException e) {
                 // support for breaking for loops
             }
@@ -121,7 +111,7 @@ public class files extends com.fizzed.rocker.runtime.DefaultRockerModel {
 
     private static class PlainText {
 
-        static private final String PLAIN_TEXT_0_0 = "    <a href=\"";
+        static private final String PLAIN_TEXT_0_0 = "<a href=\"";
         static private final String PLAIN_TEXT_1_0 = "\">";
         static private final String PLAIN_TEXT_2_0 = "</a><br>\n";
 

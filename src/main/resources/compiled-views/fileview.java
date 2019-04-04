@@ -1,8 +1,11 @@
-import com.fizzed.rocker.RenderingException;
-import com.fizzed.rocker.runtime.DefaultRockerTemplate;
-import com.fizzed.rocker.runtime.PlainTextUnloadedClassLoader;
 
 import java.io.IOException;
+import com.fizzed.rocker.ForIterator;
+import com.fizzed.rocker.RenderingException;
+import com.fizzed.rocker.RockerContent;
+import com.fizzed.rocker.RockerOutput;
+import com.fizzed.rocker.runtime.DefaultRockerTemplate;
+import com.fizzed.rocker.runtime.PlainTextUnloadedClassLoader;
 
 /*
  * Auto generated code to render template /fileview.rocker.html
@@ -11,33 +14,14 @@ import java.io.IOException;
 @SuppressWarnings("unused")
 public class fileview extends com.fizzed.rocker.runtime.DefaultRockerModel {
 
+    static public com.fizzed.rocker.ContentType getContentType() { return com.fizzed.rocker.ContentType.HTML; }
+    static public String getTemplateName() { return "fileview.rocker.html"; }
+    static public String getTemplatePackageName() { return ""; }
+    static public String getHeaderHash() { return "868254209"; }
+    static public String[] getArgumentNames() { return new String[] { "content" }; }
+
     // argument @ [1:2]
     private String content;
-
-    static public com.fizzed.rocker.ContentType getContentType() {
-        return com.fizzed.rocker.ContentType.HTML;
-    }
-
-    static public String getTemplateName() {
-        return "fileview.rocker.html";
-    }
-
-    static public String getTemplatePackageName() {
-        return "";
-    }
-
-    static public String getHeaderHash() {
-        return "868254209";
-    }
-
-    static public String[] getArgumentNames() {
-        return new String[]{"content"};
-    }
-
-    static public fileview template(String content) {
-        return new fileview()
-                .content(content);
-    }
 
     public fileview content(String content) {
         this.content = content;
@@ -48,6 +32,11 @@ public class fileview extends com.fizzed.rocker.runtime.DefaultRockerModel {
         return this.content;
     }
 
+    static public fileview template(String content) {
+        return new fileview()
+            .content(content);
+    }
+
     @Override
     protected DefaultRockerTemplate buildTemplate() throws RenderingException {
         // optimized for performance (via rocker.optimize flag; no auto reloading)
@@ -56,7 +45,7 @@ public class fileview extends com.fizzed.rocker.runtime.DefaultRockerModel {
 
     static public class Template extends com.fizzed.rocker.runtime.DefaultRockerTemplate {
 
-        // <!doctype html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\"\n          content=\"width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0\">\n    <meta http-equiv=\"X-UA-Compatible\" content=\"ie=edge\">\n    <title>Fileview</title>\n</head>\n<body>\n<textarea disabled style=\"border: none; background-color: white; width: 100vw; height: 100vh\">\n
+        // <!doctype html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta content=\"width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0\"\n          name=\"viewport\">\n    <meta content=\"ie=edge\" http-equiv=\"X-UA-Compatible\">\n    <title>Fileview</title>\n</head>\n<body>\n<textarea disabled style=\"border: none; background-color: white; width: 100vw; height: 100vh\">\n    
         static private final byte[] PLAIN_TEXT_0_0;
         // \n</textarea>\n</body>\n</html>\n
         static private final byte[] PLAIN_TEXT_1_0;
@@ -95,7 +84,7 @@ public class fileview extends com.fizzed.rocker.runtime.DefaultRockerModel {
 
     private static class PlainText {
 
-        static private final String PLAIN_TEXT_0_0 = "<!doctype html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\"\n          content=\"width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0\">\n    <meta http-equiv=\"X-UA-Compatible\" content=\"ie=edge\">\n    <title>Fileview</title>\n</head>\n<body>\n<textarea disabled style=\"border: none; background-color: white; width: 100vw; height: 100vh\">\n    ";
+        static private final String PLAIN_TEXT_0_0 = "<!doctype html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta content=\"width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0\"\n          name=\"viewport\">\n    <meta content=\"ie=edge\" http-equiv=\"X-UA-Compatible\">\n    <title>Fileview</title>\n</head>\n<body>\n<textarea disabled style=\"border: none; background-color: white; width: 100vw; height: 100vh\">\n    ";
         static private final String PLAIN_TEXT_1_0 = "\n</textarea>\n</body>\n</html>\n";
 
     }
