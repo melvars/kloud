@@ -41,3 +41,4 @@ out/
 files/
 .idea
 *.db
+src/main/resources/compilled-views/rocker-compiler.conf
