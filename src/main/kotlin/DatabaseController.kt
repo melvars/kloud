@@ -23,6 +23,7 @@ class DatabaseController(dbFileLocation: String = "main.db") {
         // val id = integer("id").autoIncrement().primaryKey()
         val username = varchar("username", 24).primaryKey()  // remove .primaryKey(), if id column is used
         val password = varchar("password", 64)
+        val role = varchar("role", 64).default("USER")
     }
 
     /**
@@ -43,11 +44,25 @@ class DatabaseController(dbFileLocation: String = "main.db") {
         }
     }
 
-    fun createUser(uname :String, passwordHash :String) {
+    fun createUser(usernameString: String, passwordHash: String, roleString: String) {
         transaction {
-            UserData.insert {
-                it[username] = uname
-                it[password] = passwordHash
+            try {
+                UserData.insert {
+                    it[username] = usernameString
+                    it[password] = passwordHash
+                    it[role] = roleString
+                }
+            } catch (_: org.jetbrains.exposed.exceptions.ExposedSQLException) {
+                println("User already exists")
+            }
+
+        }
+    }
+
+    fun getUser(usernameString: String): List<Pair<String, Roles>> {
+        return transaction {
+            return@transaction UserData.select { UserData.username eq usernameString }.map {
+                it[UserData.username] to (if (it[UserData.role] == "ADMIN") Roles.ADMIN else Roles.USER)
             }
         }
     }
@@ -66,8 +81,6 @@ class DatabaseController(dbFileLocation: String = "main.db") {
     }
 
     */
-
-
 
     // TODO add functions for database usage
 }

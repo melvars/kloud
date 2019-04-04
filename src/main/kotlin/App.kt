@@ -3,17 +3,23 @@ package space.anity
 import com.fizzed.rocker.*
 import com.fizzed.rocker.runtime.*
 import io.javalin.*
+import io.javalin.apibuilder.ApiBuilder.*
 import io.javalin.core.util.*
 import io.javalin.rendering.*
 import io.javalin.rendering.template.TemplateUtil.model
+import io.javalin.security.*
+import io.javalin.security.SecurityUtil.roles
 import java.io.*
 import java.nio.file.*
 
 const val fileHome = "files"
-val db = DatabaseController()
+val databaseController = DatabaseController()
 
 fun main() {
-    val app = Javalin.create().enableStaticFiles("../resources/").start(7000)
+    val app = Javalin.create()
+        .enableStaticFiles("../resources/")
+        .accessManager { handler, ctx, permittedRoles -> setupRoles(handler, ctx, permittedRoles) }
+        .start(7000)
 
     // Set up templating
     RockerRuntime.getInstance().isReloading = true
@@ -21,22 +27,37 @@ fun main() {
         FileRenderer { filepath, model -> Rocker.template(filepath).bind(model).render().toString() }, ".rocker.html"
     )
 
-    /**
-     * Sends a json object of filenames in [fileHome]s
-     * TODO: Fix possible security issue with "../"
-     */
-    app.get("/files/*") { ctx -> crawlFiles(ctx) }
 
-    /**
-     * Redirects upload to corresponding html file
-     */
-    app.get("/upload") { ctx -> ctx.redirect("/views/upload.html") }
+    // db test
+    databaseController.createUser("melvin", "supersecure", "ADMIN")
 
-    /**
-     * Receives and saves multipart media data
-     * TODO: Fix possible security issue with "../"
-     */
-    app.post("/upload") { ctx -> upload(ctx) }
+    app.routes {
+        /**
+         * Sends a json object of filenames in [fileHome]s
+         * TODO: Fix possible security issue with "../"
+         */
+        get("/files/*", { ctx -> crawlFiles(ctx) }, roles(Roles.ADMIN))
+
+        /**
+         * Redirects upload to corresponding html file
+         */
+        get("/upload", { ctx -> ctx.redirect("/views/upload.html") }, roles(Roles.USER))
+
+        /**
+         * Receives and saves multipart media data
+         * TODO: Fix possible security issue with "../"
+         */
+        post("/upload", { ctx -> upload(ctx) }, roles(Roles.ADMIN))
+    }
+}
+
+fun setupRoles(handler: Handler, ctx: Context, permittedRoles: Set<Role>) {
+    val userRole = databaseController.getUser("melvin")[0].second
+    when {
+        permittedRoles.contains(userRole) -> handler.handle(ctx)
+        ctx.host()!!.contains("localhost") -> handler.handle(ctx)
+        else -> ctx.status(401).json("This site isn't available for you.")
+    }
 }
 
 /**
@@ -79,4 +100,8 @@ fun upload(ctx: Context) {
         } else
             throw BadRequestResponse("Error: Please enter a filename.")
     }
+}
+
+enum class Roles : Role {
+    ADMIN, USER, GUEST
 }
