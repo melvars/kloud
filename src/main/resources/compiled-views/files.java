@@ -1,13 +1,12 @@
 
-import java.io.IOException;
-import com.fizzed.rocker.ForIterator;
 import com.fizzed.rocker.RenderingException;
-import com.fizzed.rocker.RockerContent;
-import com.fizzed.rocker.RockerOutput;
 import com.fizzed.rocker.runtime.DefaultRockerTemplate;
 import com.fizzed.rocker.runtime.PlainTextUnloadedClassLoader;
-// import @ [1:1]
+
+import java.io.IOException;
 import java.util.ArrayList;
+
+// import @ [1:1]
 
 /*
  * Auto generated code to render template /files.rocker.html
@@ -16,11 +15,25 @@ import java.util.ArrayList;
 @SuppressWarnings("unused")
 public class files extends com.fizzed.rocker.runtime.DefaultRockerModel {
 
-    static public com.fizzed.rocker.ContentType getContentType() { return com.fizzed.rocker.ContentType.HTML; }
-    static public String getTemplateName() { return "files.rocker.html"; }
-    static public String getTemplatePackageName() { return ""; }
-    static public String getHeaderHash() { return "-1618097059"; }
-    static public String[] getArgumentNames() { return new String[] { "files" }; }
+    static public com.fizzed.rocker.ContentType getContentType() {
+        return com.fizzed.rocker.ContentType.HTML;
+    }
+
+    static public String getTemplateName() {
+        return "files.rocker.html";
+    }
+
+    static public String getTemplatePackageName() {
+        return "";
+    }
+
+    static public String getHeaderHash() {
+        return "-1618097059";
+    }
+
+    static public String[] getArgumentNames() {
+        return new String[]{"files"};
+    }
 
     // argument @ [2:2]
     private ArrayList files;
@@ -36,7 +49,7 @@ public class files extends com.fizzed.rocker.runtime.DefaultRockerModel {
 
     static public files template(ArrayList files) {
         return new files()
-            .files(files);
+                .files(files);
     }
 
     @Override

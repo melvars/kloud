@@ -4,9 +4,8 @@ import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.*
 import java.sql.*
 
-
-class DB(val dbFileLocation: String = "main.db") {
-    val db :Database
+class DatabaseController(dbFileLocation: String = "main.db") {
+    val db: Database
 
     /**
      * Database table for the file location indexing
@@ -30,12 +29,12 @@ class DB(val dbFileLocation: String = "main.db") {
      * Database table storing general data/states
      */
     object General : Table() {
-        val initialUse = integer("initialUse").default(0).primaryKey() // boolean -> 0:1
+        val initialUse = integer("initialUse").default(1).primaryKey() // boolean -> 0:1
     }
 
     init {
         // create connection
-        this.db = Database.connect("jdbc:sqlite:main.db", "org.sqlite.JDBC")
+        this.db = Database.connect("jdbc:sqlite:$dbFileLocation", "org.sqlite.JDBC")
         TransactionManager.manager.defaultIsolationLevel = Connection.TRANSACTION_SERIALIZABLE
 
         // add tables
