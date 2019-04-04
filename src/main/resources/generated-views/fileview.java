@@ -1,4 +1,3 @@
-
 import com.fizzed.rocker.RenderingException;
 import com.fizzed.rocker.runtime.DefaultRockerTemplate;
 import com.fizzed.rocker.runtime.PlainTextUnloadedClassLoader;
@@ -28,6 +27,10 @@ public class fileview extends com.fizzed.rocker.runtime.DefaultRockerModel {
         return "868254209";
     }
 
+    static public long getModifiedAt() {
+        return 1554384470000L;
+    }
+
     static public String[] getArgumentNames() {
         return new String[]{"content"};
     }
@@ -51,15 +54,15 @@ public class fileview extends com.fizzed.rocker.runtime.DefaultRockerModel {
 
     @Override
     protected DefaultRockerTemplate buildTemplate() throws RenderingException {
-        // optimized for performance (via rocker.optimize flag; no auto reloading)
-        return new Template(this);
+        // optimized for convenience (runtime auto reloading enabled if rocker.reloading=true)
+        return com.fizzed.rocker.runtime.RockerRuntime.getInstance().getBootstrap().template(this.getClass(), this);
     }
 
     static public class Template extends com.fizzed.rocker.runtime.DefaultRockerTemplate {
 
-        // <!doctype html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta content=\"width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0\"\n          name=\"viewport\">\n    <meta content=\"ie=edge\" http-equiv=\"X-UA-Compatible\">\n    <title>Fileview</title>\n</head>\n<body>\n<textarea disabled style=\"border: none; background-color: white; width: 100vw; height: 100vh\">\n
+        // <!doctype html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta content=\"width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0\"\n          name=\"viewport\">\n    <meta content=\"ie=edge\" http-equiv=\"X-UA-Compatible\">\n    <title>Fileview</title>\n</head>\n<body>\n
         static private final byte[] PLAIN_TEXT_0_0;
-        // \n</textarea>\n</body>\n</html>\n
+        // \n</body>\n</html>\n
         static private final byte[] PLAIN_TEXT_1_0;
 
         static {
@@ -85,19 +88,19 @@ public class fileview extends com.fizzed.rocker.runtime.DefaultRockerModel {
             // PlainText @ [1:23]
             __internal.aboutToExecutePosInTemplate(1, 23);
             __internal.writeValue(PLAIN_TEXT_0_0);
-            // ValueExpression @ [14:5]
-            __internal.aboutToExecutePosInTemplate(14, 5);
+            // ValueExpression @ [13:5]
+            __internal.aboutToExecutePosInTemplate(13, 5);
             __internal.renderValue(content, false);
-            // PlainText @ [14:13]
-            __internal.aboutToExecutePosInTemplate(14, 13);
+            // PlainText @ [13:13]
+            __internal.aboutToExecutePosInTemplate(13, 13);
             __internal.writeValue(PLAIN_TEXT_1_0);
         }
     }
 
     private static class PlainText {
 
-        static private final String PLAIN_TEXT_0_0 = "<!doctype html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta content=\"width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0\"\n          name=\"viewport\">\n    <meta content=\"ie=edge\" http-equiv=\"X-UA-Compatible\">\n    <title>Fileview</title>\n</head>\n<body>\n<textarea disabled style=\"border: none; background-color: white; width: 100vw; height: 100vh\">\n    ";
-        static private final String PLAIN_TEXT_1_0 = "\n</textarea>\n</body>\n</html>\n";
+        static private final String PLAIN_TEXT_0_0 = "<!doctype html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta content=\"width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0\"\n          name=\"viewport\">\n    <meta content=\"ie=edge\" http-equiv=\"X-UA-Compatible\">\n    <title>Fileview</title>\n</head>\n<body>\n    ";
+        static private final String PLAIN_TEXT_1_0 = "\n</body>\n</html>\n";
 
     }
 

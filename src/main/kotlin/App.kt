@@ -1,6 +1,7 @@
 package space.anity
 
 import com.fizzed.rocker.*
+import com.fizzed.rocker.runtime.*
 import io.javalin.*
 import io.javalin.core.util.*
 import io.javalin.rendering.*
@@ -14,6 +15,8 @@ val db = DatabaseController()
 fun main() {
     val app = Javalin.create().enableStaticFiles("../resources/").start(7000)
 
+    // Set up templating
+    RockerRuntime.getInstance().isReloading = true
     JavalinRenderer.register(
         FileRenderer { filepath, model -> Rocker.template(filepath).bind(model).render().toString() }, ".rocker.html"
     )
@@ -77,8 +80,3 @@ fun upload(ctx: Context) {
             throw BadRequestResponse("Error: Please enter a filename.")
     }
 }
-
-
-
-
-

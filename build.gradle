@@ -13,9 +13,10 @@ repositories {
 
 rocker {
     main {
-        optimize = true
+        optimize = false
         templateDir = file('src/main/resources/views')
-        outputDir = file('src/main/resources/compiled-views')
+        outputDir = file('src/main/resources/generated-views')
+        classDir = file('src/main/resources/compiled-views')
     }
 }
 
@@ -27,6 +28,7 @@ dependencies {
     compile 'org.jetbrains.exposed:exposed:0.13.2'
     compile "org.xerial:sqlite-jdbc:3.21.0.1"
     compile "org.thymeleaf:thymeleaf:3.0.9.RELEASE"
+    compile group: 'com.fizzed', name: 'rocker-compiler', version: '1.2.1'
 }
 
 compileKotlin {

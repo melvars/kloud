@@ -1,4 +1,3 @@
-
 import com.fizzed.rocker.RenderingException;
 import com.fizzed.rocker.runtime.DefaultRockerTemplate;
 import com.fizzed.rocker.runtime.PlainTextUnloadedClassLoader;
@@ -31,6 +30,10 @@ public class files extends com.fizzed.rocker.runtime.DefaultRockerModel {
         return "-1618097059";
     }
 
+    static public long getModifiedAt() {
+        return 1554383637000L;
+    }
+
     static public String[] getArgumentNames() {
         return new String[]{"files"};
     }
@@ -54,8 +57,8 @@ public class files extends com.fizzed.rocker.runtime.DefaultRockerModel {
 
     @Override
     protected DefaultRockerTemplate buildTemplate() throws RenderingException {
-        // optimized for performance (via rocker.optimize flag; no auto reloading)
-        return new Template(this);
+        // optimized for convenience (runtime auto reloading enabled if rocker.reloading=true)
+        return com.fizzed.rocker.runtime.RockerRuntime.getInstance().getBootstrap().template(this.getClass(), this);
     }
 
     static public class Template extends com.fizzed.rocker.runtime.DefaultRockerTemplate {
