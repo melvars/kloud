@@ -31,7 +31,7 @@ public class files extends com.fizzed.rocker.runtime.DefaultRockerModel {
     }
 
     static public long getModifiedAt() {
-        return 1554383637381L;
+        return 1554633755940L;
     }
 
     static public String[] getArgumentNames() {
@@ -91,37 +91,43 @@ public class files extends com.fizzed.rocker.runtime.DefaultRockerModel {
 
         @Override
         protected void __doRender() throws IOException, RenderingException {
-            // ForBlockBegin @ [3:1]
+            // ValueClosureBegin @ [3:1]
             __internal.aboutToExecutePosInTemplate(3, 1);
-            try {
-                final com.fizzed.rocker.runtime.IterableForIterator<String> __forIterator0 = new com.fizzed.rocker.runtime.IterableForIterator<String>(files);
-                while (__forIterator0.hasNext()) {
-                    final String file = __forIterator0.next();
-                    try {
-                        // PlainText @ [3:29]
-                        __internal.aboutToExecutePosInTemplate(3, 29);
-                        __internal.writeValue(PLAIN_TEXT_0_0);
-                        // ValueExpression @ [4:10]
-                        __internal.aboutToExecutePosInTemplate(4, 10);
-                        __internal.renderValue(file, false);
-                        // PlainText @ [4:15]
-                        __internal.aboutToExecutePosInTemplate(4, 15);
-                        __internal.writeValue(PLAIN_TEXT_1_0);
-                        // ValueExpression @ [4:17]
-                        __internal.aboutToExecutePosInTemplate(4, 17);
-                        __internal.renderValue(file, false);
-                        // PlainText @ [4:22]
-                        __internal.aboutToExecutePosInTemplate(4, 22);
-                        __internal.writeValue(PLAIN_TEXT_2_0);
-                        // ForBlockEnd @ [3:1]
-                        __internal.aboutToExecutePosInTemplate(3, 1);
-                    } catch (com.fizzed.rocker.runtime.ContinueException e) {
-                        // support for continuing for loops
-                    }
-                } // for end @ [3:1]
-            } catch (com.fizzed.rocker.runtime.BreakException e) {
-                // support for breaking for loops
-            }
+            __internal.renderValue(layout.template(files.size() + " Files").__body(() -> {
+                // ForBlockBegin @ [4:1]
+                __internal.aboutToExecutePosInTemplate(4, 1);
+                try {
+                    final com.fizzed.rocker.runtime.IterableForIterator<String> __forIterator0 = new com.fizzed.rocker.runtime.IterableForIterator<String>(files);
+                    while (__forIterator0.hasNext()) {
+                        final String file = __forIterator0.next();
+                        try {
+                            // PlainText @ [4:29]
+                            __internal.aboutToExecutePosInTemplate(4, 29);
+                            __internal.writeValue(PLAIN_TEXT_0_0);
+                            // ValueExpression @ [5:10]
+                            __internal.aboutToExecutePosInTemplate(5, 10);
+                            __internal.renderValue(file, false);
+                            // PlainText @ [5:15]
+                            __internal.aboutToExecutePosInTemplate(5, 15);
+                            __internal.writeValue(PLAIN_TEXT_1_0);
+                            // ValueExpression @ [5:17]
+                            __internal.aboutToExecutePosInTemplate(5, 17);
+                            __internal.renderValue(file, false);
+                            // PlainText @ [5:22]
+                            __internal.aboutToExecutePosInTemplate(5, 22);
+                            __internal.writeValue(PLAIN_TEXT_2_0);
+                            // ForBlockEnd @ [4:1]
+                            __internal.aboutToExecutePosInTemplate(4, 1);
+                        } catch (com.fizzed.rocker.runtime.ContinueException e) {
+                            // support for continuing for loops
+                        }
+                    } // for end @ [4:1]
+                } catch (com.fizzed.rocker.runtime.BreakException e) {
+                    // support for breaking for loops
+                }
+                // ValueClosureEnd @ [3:1]
+                __internal.aboutToExecutePosInTemplate(3, 1);
+            }), false); // value closure end @ [3:1]
         }
     }
 

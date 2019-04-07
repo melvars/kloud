@@ -11,6 +11,9 @@ import java.io.IOException;
 @SuppressWarnings("unused")
 public class fileview extends com.fizzed.rocker.runtime.DefaultRockerModel {
 
+    // argument @ [1:2]
+    private String filename;
+
     static public com.fizzed.rocker.ContentType getContentType() {
         return com.fizzed.rocker.ContentType.HTML;
     }
@@ -24,19 +27,19 @@ public class fileview extends com.fizzed.rocker.runtime.DefaultRockerModel {
     }
 
     static public String getHeaderHash() {
-        return "868254209";
+        return "-79956506";
     }
 
     static public long getModifiedAt() {
-        return 1554408818000L;
-    }
-
-    static public String[] getArgumentNames() {
-        return new String[]{"content"};
+        return 1554633681210L;
     }
 
     // argument @ [1:2]
     private String content;
+
+    static public String[] getArgumentNames() {
+        return new String[]{"content", "filename"};
+    }
 
     public fileview content(String content) {
         this.content = content;
@@ -47,9 +50,19 @@ public class fileview extends com.fizzed.rocker.runtime.DefaultRockerModel {
         return this.content;
     }
 
-    static public fileview template(String content) {
+    static public fileview template(String content, String filename) {
         return new fileview()
-                .content(content);
+                .content(content)
+                .filename(filename);
+    }
+
+    public fileview filename(String filename) {
+        this.filename = filename;
+        return this;
+    }
+
+    public String filename() {
+        return this.filename;
     }
 
     @Override
@@ -60,19 +73,18 @@ public class fileview extends com.fizzed.rocker.runtime.DefaultRockerModel {
 
     static public class Template extends com.fizzed.rocker.runtime.DefaultRockerTemplate {
 
-        // <!doctype html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta content=\"width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0\"\n          name=\"viewport\">\n    <meta content=\"ie=edge\" http-equiv=\"X-UA-Compatible\">\n    <title>Fileview</title>\n</head>\n<body>\n
+        // \n
         static private final byte[] PLAIN_TEXT_0_0;
-        // \n</body>\n</html>\n
-        static private final byte[] PLAIN_TEXT_1_0;
 
         static {
             PlainTextUnloadedClassLoader loader = PlainTextUnloadedClassLoader.tryLoad(fileview.class.getClassLoader(), fileview.class.getName() + "$PlainText", "UTF-8");
             PLAIN_TEXT_0_0 = loader.tryGet("PLAIN_TEXT_0_0");
-            PLAIN_TEXT_1_0 = loader.tryGet("PLAIN_TEXT_1_0");
         }
 
         // argument @ [1:2]
         protected final String content;
+        // argument @ [1:2]
+        protected final String filename;
 
         public Template(fileview model) {
             super(model);
@@ -81,26 +93,29 @@ public class fileview extends com.fizzed.rocker.runtime.DefaultRockerModel {
             __internal.setTemplateName(getTemplateName());
             __internal.setTemplatePackageName(getTemplatePackageName());
             this.content = model.content();
+            this.filename = model.filename();
         }
 
         @Override
         protected void __doRender() throws IOException, RenderingException {
-            // PlainText @ [1:23]
-            __internal.aboutToExecutePosInTemplate(1, 23);
-            __internal.writeValue(PLAIN_TEXT_0_0);
-            // ValueExpression @ [13:5]
-            __internal.aboutToExecutePosInTemplate(13, 5);
-            __internal.renderValue(content, false);
-            // PlainText @ [13:13]
-            __internal.aboutToExecutePosInTemplate(13, 13);
-            __internal.writeValue(PLAIN_TEXT_1_0);
+            // ValueClosureBegin @ [3:1]
+            __internal.aboutToExecutePosInTemplate(3, 1);
+            __internal.renderValue(layout.template("File " + filename).__body(() -> {
+                // ValueExpression @ [4:1]
+                __internal.aboutToExecutePosInTemplate(4, 1);
+                __internal.renderValue(content, false);
+                // PlainText @ [4:9]
+                __internal.aboutToExecutePosInTemplate(4, 9);
+                __internal.writeValue(PLAIN_TEXT_0_0);
+                // ValueClosureEnd @ [3:1]
+                __internal.aboutToExecutePosInTemplate(3, 1);
+            }), false); // value closure end @ [3:1]
         }
     }
 
     private static class PlainText {
 
-        static private final String PLAIN_TEXT_0_0 = "<!doctype html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta content=\"width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0\"\n          name=\"viewport\">\n    <meta content=\"ie=edge\" http-equiv=\"X-UA-Compatible\">\n    <title>Fileview</title>\n</head>\n<body>\n    ";
-        static private final String PLAIN_TEXT_1_0 = "\n</body>\n</html>\n";
+        static private final String PLAIN_TEXT_0_0 = "\n";
 
     }
 

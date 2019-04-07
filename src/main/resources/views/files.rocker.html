@@ -1,5 +1,7 @@
 @import java.util.ArrayList
 @args (ArrayList files)
+@layout.template(files.size() + " Files") -> {
 @for (String file : files) {
 <a href="@file">@file</a><br>
+}
 }
