@@ -41,9 +41,9 @@ fun main() {
         get("/files/*", { ctx -> crawlFiles(ctx) }, roles(Roles.ADMIN))
 
         /**
-         * Redirects upload to corresponding html file
+         * Renders the upload rocker template
          */
-        get("/upload", { ctx -> ctx.redirect("/views/upload.html") }, roles(Roles.USER))
+        get("/upload", { ctx -> ctx.render("upload.rocker.html") }, roles(Roles.USER))
 
         /**
          * Receives and saves multipart media data
@@ -102,7 +102,7 @@ fun upload(ctx: Context) {
     ctx.uploadedFiles("files").forEach { (contentType, content, name, extension) ->
         if (ctx.queryParam("dir") !== null) {
             FileUtil.streamToFile(content, "files/${ctx.queryParam("dir")}/$name")
-            ctx.redirect("/views/upload.html")
+            ctx.redirect("/views/upload.rocker.html")
         } else
             throw BadRequestResponse("Error: Please enter a filename.")
     }
