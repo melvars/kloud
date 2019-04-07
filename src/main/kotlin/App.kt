@@ -80,14 +80,14 @@ fun crawlFiles(ctx: Context) {
                 ctx.render("files.rocker.html", model("files", files))
             }
         } else
-        // TODO: Fix square brackets at fileview content
             ctx.render(
                 "fileview.rocker.html", model(
                     "content", Files.readAllLines(
                         Paths.get("$fileHome/${ctx.splats()[0]}"),
                         Charsets.UTF_8
-                    ).toString(),
-                    "filename", File("$fileHome/${ctx.splats()[0]}").name
+                    ).joinToString(separator = "\n"),
+                    "filename", File("$fileHome/${ctx.splats()[0]}").name,
+                    "extension", File("$fileHome/${ctx.splats()[0]}").extension
                 )
             )
     } catch (_: java.nio.file.NoSuchFileException) {

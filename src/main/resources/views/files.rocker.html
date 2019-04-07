@@ -1,7 +1,13 @@
 @import java.util.ArrayList
 @args (ArrayList files)
-@layout.template(files.size() + " Files") -> {
+
+@css => {
+<link href="/css/files.css" rel="stylesheet">
+}
+
+@layout.template(files.size() + " Files", css, RockerContent.NONE) -> {
 @for (String file : files) {
-<a href="@file">@file</a><br>
+<a class="filename" href="@file">@file</a><br>
+<hr>
 }
 }

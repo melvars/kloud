@@ -1,5 +1,18 @@
-@args (String content, String filename)
+@args (String content, String filename, String extension)
 
-@layout.template("File " + filename) -> {
-@content
+@css => {
+<link href="/css/fileview.css" rel="stylesheet">
+}
+
+@js => {
+<script>const extension = "@extension";</script>
+<script src="/js/prettify.js"></script>
+<script src="/js/marked.js"></script>
+<script src="/js/fileview.js"></script>
+}
+
+@layout.template("File " + filename, css, js) -> {
+<button class="switch" id="switch">Show raw</button>
+<pre class="prettyprint" id="content"><code class="lang-@extension">@content</code></pre>
+<div class="preview" id="preview"></div>
 }

@@ -1,0 +1,7 @@
+.preview, .switch {
+    display: none;
+}
+
+.prettyprint {
+    border: none !important;
+}
