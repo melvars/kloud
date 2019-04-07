@@ -3,9 +3,11 @@ package space.anity
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.*
 import java.sql.*
+import java.util.logging.*
 
 class DatabaseController(dbFileLocation: String = "main.db") {
     val db: Database
+    val LOG = Logger.getLogger(this.javaClass.name)
 
     /**
      * Database table for the file location indexing
@@ -53,7 +55,7 @@ class DatabaseController(dbFileLocation: String = "main.db") {
                     it[role] = roleString
                 }
             } catch (_: org.jetbrains.exposed.exceptions.ExposedSQLException) {
-                println("User already exists")
+                LOG.warning("User already exists!")
             }
 
         }

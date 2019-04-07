@@ -3,6 +3,7 @@ package space.anity
 import com.fizzed.rocker.*
 import com.fizzed.rocker.runtime.*
 import io.javalin.*
+import io.javalin.Handler
 import io.javalin.apibuilder.ApiBuilder.*
 import io.javalin.core.util.*
 import io.javalin.rendering.*
@@ -11,9 +12,11 @@ import io.javalin.security.*
 import io.javalin.security.SecurityUtil.roles
 import java.io.*
 import java.nio.file.*
+import java.util.logging.*
 
 const val fileHome = "files"
 val databaseController = DatabaseController()
+val LOG = Logger.getLogger("App.kt")
 
 fun main() {
     val app = Javalin.create()
@@ -81,7 +84,8 @@ fun crawlFiles(ctx: Context) {
                     "content", Files.readAllLines(
                         Paths.get("$fileHome/${ctx.splats()[0]}"),
                         Charsets.UTF_8
-                    ).toString()
+                    ).toString(),
+                    "filename", File("$fileHome/${ctx.splats()[0]}").name
                 )
             )
     } catch (_: java.nio.file.NoSuchFileException) {
