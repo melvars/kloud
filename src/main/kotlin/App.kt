@@ -11,6 +11,7 @@ import io.javalin.rendering.template.TemplateUtil.model
 import io.javalin.security.*
 import io.javalin.security.SecurityUtil.roles
 import java.io.*
+import java.nio.charset.*
 import java.nio.file.*
 import java.util.logging.*
 
@@ -70,32 +71,36 @@ fun setupRoles(handler: Handler, ctx: Context, permittedRoles: Set<Role>) {
  */
 fun crawlFiles(ctx: Context) {
     try {
-        if (File("$fileHome/${ctx.splats()[0]}").isDirectory) {
-            val files = ArrayList<String>()
-            Files.list(Paths.get("$fileHome/${ctx.splats()[0]}/")).forEach {
-                val fileName = it.toString()
-                    .drop(fileHome.length + (if (ctx.splats()[0].isNotEmpty()) ctx.splats()[0].length + 2 else 1))
-                val filePath = "$fileHome${it.toString().drop(fileHome.length)}"
-                files.add(if (File(filePath).isDirectory) "$fileName/" else fileName)
+        when {
+            File("$fileHome/${ctx.splats()[0]}").isDirectory -> {
+                val files = ArrayList<String>()
+                Files.list(Paths.get("$fileHome/${ctx.splats()[0]}/")).forEach {
+                    val fileName = it.toString()
+                        .drop(fileHome.length + (if (ctx.splats()[0].isNotEmpty()) ctx.splats()[0].length + 2 else 1))
+                    val filePath = "$fileHome${it.toString().drop(fileHome.length)}"
+                    files.add(if (File(filePath).isDirectory) "$fileName/" else fileName)
+                }
+                files.sortWith(String.CASE_INSENSITIVE_ORDER)
+                ctx.render(
+                    "files.rocker.html", model(
+                        "files", files,
+                        "path", ctx.splats()[0]
+                    )
+                )
             }
-            files.sortWith(String.CASE_INSENSITIVE_ORDER)
-            ctx.render(
-                "files.rocker.html", model(
-                    "files", files,
-                    "path", ctx.splats()[0]
+            isHumanReadable("$fileHome/${ctx.splats()[0]}") ->
+                ctx.render(
+                    "fileview.rocker.html", model(
+                        "content", Files.readAllLines(
+                            Paths.get("$fileHome/${ctx.splats()[0]}"),
+                            Charsets.UTF_8
+                        ).joinToString(separator = "\n"),
+                        "filename", File("$fileHome/${ctx.splats()[0]}").name,
+                        "extension", File("$fileHome/${ctx.splats()[0]}").extension
+                    )
                 )
-            )
-        } else
-            ctx.render(
-                "fileview.rocker.html", model(
-                    "content", Files.readAllLines(
-                        Paths.get("$fileHome/${ctx.splats()[0]}"),
-                        Charsets.UTF_8
-                    ).joinToString(separator = "\n"),
-                    "filename", File("$fileHome/${ctx.splats()[0]}").name,
-                    "extension", File("$fileHome/${ctx.splats()[0]}").extension
-                )
-            )
+            else -> ctx.result(FileInputStream(File("$fileHome/${ctx.splats()[0]}")))
+        }
     } catch (_: java.nio.file.NoSuchFileException) {
         throw NotFoundResponse("Error: File or directory does not exist.")
     }
@@ -109,6 +114,26 @@ fun upload(ctx: Context) {
         FileUtil.streamToFile(content, "$fileHome/${ctx.splats()[0]}/$name")
         ctx.redirect("/upload")
     }
+}
+
+/**
+ * Checks whether the file is binary or human-readable (text)
+ */
+private fun isHumanReadable(filePath: String): Boolean {
+    val file = File(filePath)
+    val input = FileInputStream(file)
+    var size = input.available()
+    if (size > 1000) size = 1000
+    val data = ByteArray(size)
+    input.read(data)
+    input.close()
+    val text = String(data, Charset.forName("ISO-8859-1"))
+    val replacedText = text.replace(
+        ("[a-zA-Z0-9ßöäü\\.\\*!\"§\\$\\%&/()=\\?@~'#:,;\\+><\\|\\[\\]\\{\\}\\^°²³\\\\ \\n\\r\\t_\\-`´âêîôÂÊÔÎáéíóàèìòÁÉÍÓÀÈÌÒ©‰¢£¥€±¿»«¼½¾™ª]").toRegex(),
+        ""
+    )
+    val d = (text.length - replacedText.length).toDouble() / text.length.toDouble()
+    return d > 0.95
 }
 
 /**
