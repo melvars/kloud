@@ -42,3 +42,4 @@ files/
 .idea
 *.db
 src/main/resources/compiled-views/rocker-compiler.conf
+src/main/resources/generated-views/
