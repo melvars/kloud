@@ -6,8 +6,8 @@ import java.sql.*
 import java.util.logging.*
 
 class DatabaseController(dbFileLocation: String = "main.db") {
-    val db: Database
-    val LOG = Logger.getLogger(this.javaClass.name)
+    val db: Database = Database.connect("jdbc:sqlite:$dbFileLocation", "org.sqlite.JDBC")
+    private val log = Logger.getLogger(this.javaClass.name)
 
     /**
      * Database table for the file location indexing
@@ -21,9 +21,8 @@ class DatabaseController(dbFileLocation: String = "main.db") {
      * Database table to index the users with their regarding passwords
      */
     object UserData : Table() {
-        // only for multiple users:
-        // val id = integer("id").autoIncrement().primaryKey()
-        val username = varchar("username", 24).primaryKey()  // remove .primaryKey(), if id column is used
+        val id = integer("id").autoIncrement().primaryKey()
+        val username = varchar("username", 24)
         val password = varchar("password", 64)
         val role = varchar("role", 64).default("USER")
     }
@@ -32,20 +31,22 @@ class DatabaseController(dbFileLocation: String = "main.db") {
      * Database table storing general data/states
      */
     object General : Table() {
-        val initialUse = integer("initialUse").default(1).primaryKey() // boolean -> 0:1
+        val initialUse = integer("initialUse").default(1).primaryKey()
     }
 
     init {
-        // create connection
-        this.db = Database.connect("jdbc:sqlite:$dbFileLocation", "org.sqlite.JDBC")
+        // Create connection
         TransactionManager.manager.defaultIsolationLevel = Connection.TRANSACTION_SERIALIZABLE
 
-        // add tables
+        // Add tables
         transaction {
             SchemaUtils.createMissingTablesAndColumns(FileLocation, UserData, General)
         }
     }
 
+    /**
+     * Creates the user in the database using username, password and the role
+     */
     fun createUser(usernameString: String, passwordHash: String, roleString: String) {
         transaction {
             try {
@@ -55,12 +56,15 @@ class DatabaseController(dbFileLocation: String = "main.db") {
                     it[role] = roleString
                 }
             } catch (_: org.jetbrains.exposed.exceptions.ExposedSQLException) {
-                LOG.warning("User already exists!")
+                log.warning("User already exists!")
             }
 
         }
     }
 
+    /**
+     * Returns a list of the username paired with the corresponding role using [usernameString]
+     */
     fun getUser(usernameString: String): List<Pair<String, Roles>> {
         return transaction {
             return@transaction UserData.select { UserData.username eq usernameString }.map {
@@ -69,20 +73,5 @@ class DatabaseController(dbFileLocation: String = "main.db") {
         }
     }
 
-    /*
-    fun selectUser(uname: String) :String {
-        var pwd :String
-
-        transaction {
-            UserData.select{UserData.username eq uname}.forEach {
-                pwd = it[UserData.password]
-            }
-        }
-
-        // return pwd
-    }
-
-    */
-
-    // TODO add functions for database usage
+    // TODO: Add more functions for database interaction
 }

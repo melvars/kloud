@@ -16,7 +16,7 @@ import java.util.logging.*
 
 const val fileHome = "files"
 val databaseController = DatabaseController()
-val LOG = Logger.getLogger("App.kt")
+private val log = Logger.getLogger("App.kt")
 
 fun main() {
     val app = Javalin.create()
@@ -30,8 +30,7 @@ fun main() {
         FileRenderer { filepath, model -> Rocker.template(filepath).bind(model).render().toString() }, ".rocker.html"
     )
 
-
-    // db test
+    // Only for testing purposes
     databaseController.createUser("melvin", "supersecure", "ADMIN")
 
     app.routes {
@@ -54,6 +53,9 @@ fun main() {
     }
 }
 
+/**
+ * Sets up the roles with the database and declares the handling of roles
+ */
 fun setupRoles(handler: Handler, ctx: Context, permittedRoles: Set<Role>) {
     val userRole = databaseController.getUser("melvin")[0].second
     when {
@@ -106,6 +108,9 @@ fun upload(ctx: Context) {
     }
 }
 
+/**
+ * Declares the roles in which a user can be in
+ */
 enum class Roles : Role {
     ADMIN, USER, GUEST
 }
