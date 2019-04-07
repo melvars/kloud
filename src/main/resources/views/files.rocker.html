@@ -1,13 +1,22 @@
 @import java.util.ArrayList
-@args (ArrayList files)
+@args (ArrayList files, String path)
 
 @css => {
 <link href="/css/files.css" rel="stylesheet">
 }
 
-@layout.template(files.size() + " Files", css, RockerContent.NONE) -> {
-@for (String file : files) {
-<a class="filename" href="@file">@file</a><br>
-<hr>
+@js => {
+<script>const path = "@path";</script>
+<script src="/js/files.js"></script>
 }
+
+@layout.template(files.size() + " Files", css, js) -> {
+<div class="drop" id="drop">
+    <a class="filename" href="../">../</a><br>
+    <hr>
+    @for (String file : files) {
+    <a class="filename" href="@file">@file</a><br>
+    <hr>
+    }
+</div>
 }

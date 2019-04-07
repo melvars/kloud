@@ -49,7 +49,7 @@ fun main() {
          * Receives and saves multipart media data
          * TODO: Fix possible security issue with "../"
          */
-        post("/upload", { ctx -> upload(ctx) }, roles(Roles.ADMIN))
+        post("/upload/*", { ctx -> upload(ctx) }, roles(Roles.ADMIN))
     }
 }
 
@@ -66,18 +66,23 @@ fun setupRoles(handler: Handler, ctx: Context, permittedRoles: Set<Role>) {
 }
 
 /**
- * Crawls the requested directory and returns filenames in array
+ * Crawls the requested file and either renders the directory view or the file view
  */
 fun crawlFiles(ctx: Context) {
-    val files = ArrayList<String>()
     try {
         if (File("$fileHome/${ctx.splats()[0]}").isDirectory) {
+            val files = ArrayList<String>()
             Files.list(Paths.get("$fileHome/${ctx.splats()[0]}/")).forEach {
                 val fileName = it.toString()
                     .drop(fileHome.length + (if (ctx.splats()[0].isNotEmpty()) ctx.splats()[0].length + 2 else 1))
                 val filePath = "$fileHome${it.toString().drop(fileHome.length)}"
                 files.add(if (File(filePath).isDirectory) "$fileName/" else fileName)
-                ctx.render("files.rocker.html", model("files", files))
+                ctx.render(
+                    "files.rocker.html", model(
+                        "files", files,
+                        "path", ctx.splats()[0]
+                    )
+                )
             }
         } else
             ctx.render(
@@ -99,12 +104,9 @@ fun crawlFiles(ctx: Context) {
  * Saves multipart media data into requested directory
  */
 fun upload(ctx: Context) {
-    ctx.uploadedFiles("files").forEach { (contentType, content, name, extension) ->
-        if (ctx.queryParam("dir") !== null) {
-            FileUtil.streamToFile(content, "files/${ctx.queryParam("dir")}/$name")
-            ctx.redirect("/views/upload.rocker.html")
-        } else
-            throw BadRequestResponse("Error: Please enter a filename.")
+    ctx.uploadedFiles("file").forEach { (contentType, content, name, extension) ->
+        FileUtil.streamToFile(content, "$fileHome/${ctx.splats()[0]}/$name")
+        ctx.redirect("/upload")
     }
 }
 

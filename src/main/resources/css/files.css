@@ -3,3 +3,9 @@ a.filename {
     text-decoration: none;
     margin-bottom: 5px;;
 }
+
+.drop {
+    padding: 8px;
+    min-height: calc(100vh - 16px);
+    z-index: -1;
+}
