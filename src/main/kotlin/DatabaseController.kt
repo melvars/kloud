@@ -1,5 +1,6 @@
 package space.anity
 
+import at.favre.lib.crypto.bcrypt.*
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.*
 import java.sql.*
@@ -22,7 +23,7 @@ class DatabaseController(dbFileLocation: String = "main.db") {
      */
     object UserData : Table() {
         val id = integer("id").autoIncrement().primaryKey()
-        val username = varchar("username", 24)
+        val username = varchar("username", 24).uniqueIndex()
         val password = varchar("password", 64)
         val role = varchar("role", 64).default("USER")
     }
@@ -47,31 +48,37 @@ class DatabaseController(dbFileLocation: String = "main.db") {
     /**
      * Creates the user in the database using username, password and the role
      */
-    fun createUser(usernameString: String, passwordHash: String, roleString: String) {
+    fun createUser(usernameString: String, passwordString: String, roleString: String) {
         transaction {
             try {
                 UserData.insert {
                     it[username] = usernameString
-                    it[password] = passwordHash
+                    it[password] = BCrypt.withDefaults().hashToString(12, passwordString.toCharArray())
                     it[role] = roleString
                 }
             } catch (_: org.jetbrains.exposed.exceptions.ExposedSQLException) {
                 log.warning("User already exists!")
             }
-
         }
     }
 
     /**
-     * Returns a list of the username paired with the corresponding role using [usernameString]
+     * Tests whether the password [passwordString] of the user [usernameString] is correct
      */
-    fun getUser(usernameString: String): List<Pair<String, Roles>> {
+    fun checkUser(usernameString: String, passwordString: String): Boolean {
         return transaction {
-            return@transaction UserData.select { UserData.username eq usernameString }.map {
-                it[UserData.username] to (if (it[UserData.role] == "ADMIN") Roles.ADMIN else Roles.USER)
-            }
+            val passwordHash = UserData.select { UserData.username eq usernameString }.map { it[UserData.password] }[0]
+            BCrypt.verifyer().verify(passwordString.toCharArray(), passwordHash).verified
         }
     }
 
-    // TODO: Add more functions for database interaction
+    /**
+     * Returns the corresponding role using [usernameString]
+     */
+    fun getRole(usernameString: String): Roles {
+        return transaction {
+            val role = UserData.select { UserData.username eq usernameString }.map { it[UserData.role] }[0]
+            if (role == "ADMIN") Roles.ADMIN else Roles.USER
+        }
+    }
 }

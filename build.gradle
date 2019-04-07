@@ -29,6 +29,7 @@ dependencies {
     compile "org.xerial:sqlite-jdbc:3.21.0.1"
     compile "org.thymeleaf:thymeleaf:3.0.9.RELEASE"
     compile group: 'com.fizzed', name: 'rocker-compiler', version: '1.2.1'
+    compile group: 'at.favre.lib', name: 'bcrypt', version: '0.7.0'
 }
 
 compileKotlin {

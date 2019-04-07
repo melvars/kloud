@@ -57,7 +57,7 @@ fun main() {
  * Sets up the roles with the database and declares the handling of roles
  */
 fun setupRoles(handler: Handler, ctx: Context, permittedRoles: Set<Role>) {
-    val userRole = databaseController.getUser("melvin")[0].second
+    val userRole = databaseController.getRole("melvin")
     when {
         permittedRoles.contains(userRole) -> handler.handle(ctx)
         ctx.host()!!.contains("localhost") -> handler.handle(ctx)
