@@ -1,10 +1,10 @@
 # Kloud
 <p align="center">
     <i>„A secure and minimalistic cloud based on Kotlin“</i>
-    <br><br>
+    <!--<br><br>
     <a target="_blank" href="https://floobits.com/marvinborner/kloud/redirect">
       <img alt="Floobits Status" src="https://floobits.com/marvinborner/kloud.svg" />
-    </a>
+    </a>-->
 </p>
 
 ## Features of Kloud
