@@ -77,13 +77,14 @@ fun crawlFiles(ctx: Context) {
                     .drop(fileHome.length + (if (ctx.splats()[0].isNotEmpty()) ctx.splats()[0].length + 2 else 1))
                 val filePath = "$fileHome${it.toString().drop(fileHome.length)}"
                 files.add(if (File(filePath).isDirectory) "$fileName/" else fileName)
-                ctx.render(
-                    "files.rocker.html", model(
-                        "files", files,
-                        "path", ctx.splats()[0]
-                    )
-                )
             }
+            files.sortWith(String.CASE_INSENSITIVE_ORDER)
+            ctx.render(
+                "files.rocker.html", model(
+                    "files", files,
+                    "path", ctx.splats()[0]
+                )
+            )
         } else
             ctx.render(
                 "fileview.rocker.html", model(
