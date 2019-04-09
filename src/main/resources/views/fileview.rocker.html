@@ -14,6 +14,7 @@
 @layout.template("File " + filename, css, js) -> {
 <button class="switch" id="raw">Show raw</button>
 <span class="settings" id="settings">
+    <!-- TODO: HTML gets executed on linecount option click - why? -->
     <label for="code">Linecount</label><input id="code" type="checkbox">
     <label for="dark">Dark mode</label><input id="dark" type="checkbox">
 </span>
