@@ -36,6 +36,12 @@ fun main() {
 
     app.routes {
         /**
+         * Main page
+         * TODO: Create landing page
+         */
+        get("/", { ctx -> ctx.render("index.rocker.html") }, roles(Roles.GUEST))
+
+        /**
          * Sends a json object of filenames in [fileHome]s
          * TODO: Fix possible security issue with "../"
          */
