@@ -33,32 +33,32 @@ if (extension === "md" || extension === "html") {
             settings.style.display = "none";
         }
     });
-
-    code.addEventListener("change", () => {
-        if (code.checked) {
-            content.classList.remove("prettyprinted");
-            content.innerHTML = "";
-            content.classList.add("linenums");
-            content.innerHTML = originalContent;
-            PR.prettyPrint();
-        } else {
-            content.classList.remove("prettyprinted");
-            content.innerHTML = "";
-            content.classList.remove("linenums");
-            content.innerHTML = originalContent;
-            PR.prettyPrint();
-        }
-    });
-
-    dark.addEventListener("change", () => {
-        if (dark.checked) {
-            document.getElementsByTagName("head")[0]
-                .insertAdjacentHTML("beforeend", '<link id="darkTheme" href="/css/darkTheme.css" rel="stylesheet" />');
-            document.getElementById("lightTheme").outerHTML = "";
-        } else {
-            document.getElementsByTagName("head")[0]
-                .insertAdjacentHTML("beforeend", '<link id="lightTheme" href="/css/lightTheme.css" rel="stylesheet" />');
-            document.getElementById("darkTheme").outerHTML = "";
-        }
-    });
 }
+
+code.addEventListener("change", () => {
+    if (code.checked) {
+        content.classList.remove("prettyprinted");
+        content.innerHTML = "";
+        content.classList.add("linenums");
+        content.innerHTML = originalContent;
+        PR.prettyPrint();
+    } else {
+        content.classList.remove("prettyprinted");
+        content.innerHTML = "";
+        content.classList.remove("linenums");
+        content.innerHTML = originalContent;
+        PR.prettyPrint();
+    }
+});
+
+dark.addEventListener("change", () => {
+    if (dark.checked) {
+        document.getElementsByTagName("head")[0]
+            .insertAdjacentHTML("beforeend", '<link id="darkTheme" href="/css/darkTheme.css" rel="stylesheet" />');
+        document.getElementById("lightTheme").outerHTML = "";
+    } else {
+        document.getElementsByTagName("head")[0]
+            .insertAdjacentHTML("beforeend", '<link id="lightTheme" href="/css/lightTheme.css" rel="stylesheet" />');
+        document.getElementById("darkTheme").outerHTML = "";
+    }
+});
