@@ -12,6 +12,7 @@
 
 @layout.template(files.size() + " Files", css, js) -> {
 <div class="drop" id="drop">
+    <h1>/@path</h1>
     <a class="filename" href="../">../</a><br>
     <hr>
     @for (String file : files) {
