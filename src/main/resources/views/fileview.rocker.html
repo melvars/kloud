@@ -12,7 +12,11 @@
 }
 
 @layout.template("File " + filename, css, js) -> {
-<button class="switch" id="switch">Show raw</button>
+<button class="switch" id="raw">Show raw</button>
+<span class="settings" id="settings">
+    <label for="code">Linecount</label><input id="code" type="checkbox">
+    <label for="dark">Dark mode</label><input id="dark" type="checkbox">
+</span>
 <pre class="prettyprint" id="content"><code class="lang-@extension">@content</code></pre>
 <div class="preview" id="preview"></div>
 }
