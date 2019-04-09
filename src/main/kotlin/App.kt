@@ -31,15 +31,25 @@ fun main() {
         FileRenderer { filepath, model -> Rocker.template(filepath).bind(model).render().toString() }, ".rocker.html"
     )
 
-    // Only for testing purposes
-    databaseController.createUser("melvin", "supersecure", "ADMIN")
+    databaseController.initDatabase()
 
     app.routes {
         /**
          * Main page
          * TODO: Create landing page
          */
-        get("/", { ctx -> ctx.render("index.rocker.html") }, roles(Roles.GUEST))
+        get("/", { ctx ->
+            //if (/* check if logged in*/) {
+            ctx.render("index.rocker.html")
+            // } else if (databaseController.isInitialUse()){
+            // TODO: Render setup template
+            // } else {
+            // TODO: Render login template
+            //}
+        }, roles(Roles.GUEST))
+
+        get("/login", { ctx -> ctx.render("login.rocker.html") }, roles(Roles.GUEST))
+        //post("/login", { ctx -> login(ctx) })
 
         /**
          * Sends a json object of filenames in [fileHome]s
@@ -71,6 +81,11 @@ fun setupRoles(handler: Handler, ctx: Context, permittedRoles: Set<Role>) {
         else -> ctx.status(401).json("This site isn't available for you.")
     }
 }
+
+/*private val Context.userRoles: List<Roles>
+    get() = this.basicAuthCredentials()?.let { (username, password) ->
+        userRoleMap[Pair(username, password)] ?: listOf()
+    } ?: listOf()*/
 
 /**
  * Crawls the requested file and either renders the directory view or the file view
@@ -118,6 +133,7 @@ fun crawlFiles(ctx: Context) {
 fun upload(ctx: Context) {
     ctx.uploadedFiles("file").forEach { (contentType, content, name, extension) ->
         FileUtil.streamToFile(content, "$fileHome/${ctx.splats()[0]}/$name")
+        // databaseController.addFile("$fileHome/${ctx.splats()[0]}/$name", USER???: get by Session)
         ctx.redirect("/upload")
     }
 }
@@ -141,6 +157,7 @@ private fun isHumanReadable(filePath: String): Boolean {
     val d = (text.length - replacedText.length).toDouble() / text.length.toDouble()
     return d > 0.95
 }
+
 
 /**
  * Declares the roles in which a user can be in
