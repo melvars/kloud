@@ -22,7 +22,7 @@ private val log = Logger.getLogger("App.kt")
 fun main() {
     val app = Javalin.create()
         .enableStaticFiles("../resources/")
-        .accessManager { handler, ctx, permittedRoles -> setupRoles(handler, ctx, permittedRoles) }
+        .accessManager { handler, ctx, permittedRoles -> roleManager(handler, ctx, permittedRoles) }
         .start(7000)
 
     // Set up templating
@@ -48,8 +48,19 @@ fun main() {
             //}
         }, roles(Roles.GUEST))
 
-        get("/login", { ctx -> ctx.render("login.rocker.html") }, roles(Roles.GUEST))
-        //post("/login", { ctx -> login(ctx) })
+        /**
+         * Renders the login page
+         */
+        get(
+            "/login",
+            { ctx -> ctx.render("login.rocker.html", model("message", "")) },
+            roles(Roles.GUEST)
+        )
+
+        /**
+         * Endpoint for user authentication
+         */
+        post("/login", { ctx -> login(ctx) }, roles(Roles.GUEST)) // TODO: brute-force protection
 
         /**
          * Sends a json object of filenames in [fileHome]s
@@ -73,19 +84,25 @@ fun main() {
 /**
  * Sets up the roles with the database and declares the handling of roles
  */
-fun setupRoles(handler: Handler, ctx: Context, permittedRoles: Set<Role>) {
-    val userRole = databaseController.getRole("melvin")
+fun roleManager(handler: Handler, ctx: Context, permittedRoles: Set<Role>) {
+    val userRole = databaseController.getRole(getUsername(ctx))
     when {
+        getUsername(ctx) == ctx.cookieStore("username") ?: "username" -> handler.handle(ctx)
         permittedRoles.contains(userRole) -> handler.handle(ctx)
-        ctx.host()!!.contains("localhost") -> handler.handle(ctx)
-        else -> ctx.status(401).json("This site isn't available for you.")
+        //ctx.host()!!.contains("localhost") -> handler.handle(ctx) // DEBUG
+        else -> ctx.status(401).result("This site isn't available for you.")
     }
 }
 
-/*private val Context.userRoles: List<Roles>
-    get() = this.basicAuthCredentials()?.let { (username, password) ->
-        userRoleMap[Pair(username, password)] ?: listOf()
-    } ?: listOf()*/
+/**
+ * Gets the username and verifies its identity
+ */
+fun getUsername(ctx: Context): String {
+    return if (databaseController.getUsernameByUUID(ctx.cookieStore("uuid") ?: "uuid")
+        == ctx.cookieStore("username") ?: "username"
+    ) ctx.cookieStore("username")
+    else ""
+}
 
 /**
  * Crawls the requested file and either renders the directory view or the file view
@@ -156,6 +173,18 @@ private fun isHumanReadable(filePath: String): Boolean {
     )
     val d = (text.length - replacedText.length).toDouble() / text.length.toDouble()
     return d > 0.95
+}
+
+fun login(ctx: Context) {
+    val username = ctx.formParam("username").toString()
+    val password = ctx.formParam("password").toString()
+
+    if (databaseController.checkUser(username, password)) {
+        ctx.cookieStore("uuid", databaseController.getUUID(username))
+        ctx.cookieStore("username", username)
+        ctx.render("login.rocker.html", model("message", "Login succeeded!"))
+    } else
+        ctx.render("login.rocker.html", model("message", "Login failed!"))
 }
 
 

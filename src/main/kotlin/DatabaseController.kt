@@ -4,6 +4,7 @@ import at.favre.lib.crypto.bcrypt.*
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.*
 import java.sql.*
+import java.util.*
 import java.util.logging.*
 
 class DatabaseController(dbFileLocation: String = "main.db") {
@@ -26,6 +27,7 @@ class DatabaseController(dbFileLocation: String = "main.db") {
         val id = integer("id").autoIncrement().primaryKey()
         val username = varchar("username", 24).uniqueIndex()
         val password = varchar("password", 64)
+        val uuid = varchar("uuid", 64)
     }
 
     /**
@@ -72,6 +74,7 @@ class DatabaseController(dbFileLocation: String = "main.db") {
                 val usersId = UserData.insert {
                     it[username] = usernameString
                     it[password] = BCrypt.withDefaults().hashToString(12, passwordString.toCharArray())
+                    it[uuid] = UUID.randomUUID().toString()
                 }[UserData.id]
 
                 UserRoles.insert { roles ->
@@ -89,8 +92,39 @@ class DatabaseController(dbFileLocation: String = "main.db") {
      */
     fun checkUser(usernameString: String, passwordString: String): Boolean {
         return transaction {
-            val passwordHash = UserData.select { UserData.username eq usernameString }.map { it[UserData.password] }[0]
-            BCrypt.verifyer().verify(passwordString.toCharArray(), passwordHash).verified
+            try {
+                val passwordHash =
+                    UserData.select { UserData.username eq usernameString }.map { it[UserData.password] }[0]
+                BCrypt.verifyer().verify(passwordString.toCharArray(), passwordHash).verified
+            } catch (_: Exception) {
+                false
+            }
+        }
+    }
+
+    /**
+     * Returns the corresponding username using [uuid]
+     */
+    fun getUsernameByUUID(uuid: String): String {
+        return transaction {
+            try {
+                UserData.select { UserData.uuid eq uuid }.map { it[UserData.username] }[0]
+            } catch (_: Exception) {
+                ""
+            }
+        }
+    }
+
+    /**
+     * Returns the corresponding uuid using [usernameString]
+     */
+    fun getUUID(usernameString: String): String {
+        return transaction {
+            try {
+                UserData.select { UserData.username eq usernameString }.map { it[UserData.uuid] }[0]
+            } catch (_: Exception) {
+                ""
+            }
         }
     }
 
@@ -99,10 +133,14 @@ class DatabaseController(dbFileLocation: String = "main.db") {
      */
     fun getRole(usernameString: String): Roles {
         return transaction {
-            val userId = UserData.select { UserData.username eq usernameString }.map { it[UserData.id] }[0]
-            val userRoleId = UserRoles.select { UserRoles.userId eq userId }.map { it[UserRoles.roleId] }[0]
-            val userRole = RolesData.select { RolesData.id eq userRoleId }.map { it[RolesData.role] }[0]
-            if (userRole == "ADMIN") Roles.ADMIN else Roles.USER
+            try {
+                val userId = UserData.select { UserData.username eq usernameString }.map { it[UserData.id] }[0]
+                val userRoleId = UserRoles.select { UserRoles.userId eq userId }.map { it[UserRoles.roleId] }[0]
+                val userRole = RolesData.select { RolesData.id eq userRoleId }.map { it[RolesData.role] }[0]
+                if (userRole == "ADMIN") Roles.ADMIN else Roles.USER
+            } catch (_: Exception) {
+                Roles.GUEST
+            }
         }
     }
 
@@ -120,6 +158,14 @@ class DatabaseController(dbFileLocation: String = "main.db") {
                 log.warning("File already exists!")
             }
         }
+    }
+
+    /**
+     * Checks whether the site has been set up
+     */
+    fun isInitialUse(): Boolean {
+        val initialUseRow = transaction { General.selectAll().map { it[General.initialUse] } }[0]
+        return initialUseRow == 1
     }
 
     /**

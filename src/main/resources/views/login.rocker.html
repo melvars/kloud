@@ -1,0 +1,20 @@
+@args (String message)
+
+@layout.template("Login", RockerContent.NONE, RockerContent.NONE) -> {
+<form action="login" method="post">
+    <div>
+        <label for="username">Username:</label>
+        <input id="username" name="username" type="text"/>
+    </div>
+    <div>
+        <label for="password">Password:</label>
+        <input id="password" name="password" type="password"/>
+    </div>
+
+    <button type="submit">Login</button>
+
+    @if(message.length() > 0) {
+    <small>@message</small>
+    }
+</form>
+}
