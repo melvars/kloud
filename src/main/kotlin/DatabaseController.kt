@@ -53,6 +53,7 @@ class DatabaseController(dbFileLocation: String = "main.db") {
     object General : Table() {
         val id = integer("id").autoIncrement().primaryKey()
         val initialUse = integer("initialUse").default(1).primaryKey()
+        val isSetup = integer("isSetup").default(0).primaryKey()
     }
 
     init {
@@ -68,8 +69,8 @@ class DatabaseController(dbFileLocation: String = "main.db") {
     /**
      * Creates the user in the database using username, password and the role
      */
-    fun createUser(usernameString: String, passwordString: String, roleString: String) {
-        transaction {
+    fun createUser(usernameString: String, passwordString: String, roleString: String): Boolean {
+        return transaction {
             try {
                 val usersId = UserData.insert {
                     it[username] = usernameString
@@ -81,8 +82,10 @@ class DatabaseController(dbFileLocation: String = "main.db") {
                     roles[userId] = usersId!!
                     roles[roleId] = RolesData.select { RolesData.role eq roleString }.map { it[RolesData.id] }[0]
                 }
+                true
             } catch (_: org.jetbrains.exposed.exceptions.ExposedSQLException) {
                 log.warning("User already exists!")
+                false
             }
         }
     }
@@ -163,9 +166,25 @@ class DatabaseController(dbFileLocation: String = "main.db") {
     /**
      * Checks whether the site has been set up
      */
-    fun isInitialUse(): Boolean {
-        val initialUseRow = transaction { General.selectAll().map { it[General.initialUse] } }[0]
-        return initialUseRow == 1
+    fun isSetup(): Boolean {
+        return transaction {
+            try {
+                General.selectAll().map { it[General.isSetup] }[0] == 1
+            } catch (_: Exception) {
+                false
+            }
+        }
+    }
+
+    /**
+     * Toggles the setup state
+     */
+    fun toggleSetup() {
+        transaction {
+            General.update({ General.initialUse eq 0 }) {
+                it[General.isSetup] = 1
+            }
+        }
     }
 
     /**
@@ -184,8 +203,6 @@ class DatabaseController(dbFileLocation: String = "main.db") {
                 RolesData.insert {
                     it[role] = "GUEST"
                 }
-
-                databaseController.createUser("melvin", "supersecure", "ADMIN")
 
                 UserRoles.insert {
                     it[userId] = 1

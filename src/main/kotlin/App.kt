@@ -13,6 +13,7 @@ import io.javalin.security.SecurityUtil.roles
 import java.io.*
 import java.nio.charset.*
 import java.nio.file.*
+import java.util.*
 import java.util.logging.*
 
 const val fileHome = "files"
@@ -38,15 +39,7 @@ fun main() {
          * Main page
          * TODO: Create landing page
          */
-        get("/", { ctx ->
-            //if (/* check if logged in*/) {
-            ctx.render("index.rocker.html")
-            // } else if (databaseController.isInitialUse()){
-            // TODO: Render setup template
-            // } else {
-            // TODO: Render login template
-            //}
-        }, roles(Roles.GUEST))
+        get("/", { ctx -> ctx.render("index.rocker.html") }, roles(Roles.GUEST))
 
         /**
          * Renders the login page
@@ -61,6 +54,22 @@ fun main() {
          * Endpoint for user authentication
          */
         post("/login", { ctx -> login(ctx) }, roles(Roles.GUEST)) // TODO: brute-force protection
+
+        /**
+         * Renders the setup page (only on initial use)
+         */
+        get("/setup", { ctx ->
+            if (databaseController.isSetup()) ctx.redirect("/")
+            else ctx.render(
+                "setup.rocker.html",
+                model("message", "")
+            )
+        }, roles(Roles.GUEST))
+
+        /**
+         * Endpoint for setup (only on initial use)
+         */
+        post("/setup", { ctx -> setup(ctx) }, roles(Roles.GUEST))
 
         /**
          * Sends a json object of filenames in [fileHome]s
@@ -175,6 +184,9 @@ private fun isHumanReadable(filePath: String): Boolean {
     return d > 0.95
 }
 
+/**
+ * Checks and verifies users credentials and logs the user in
+ */
 fun login(ctx: Context) {
     val username = ctx.formParam("username").toString()
     val password = ctx.formParam("password").toString()
@@ -187,6 +199,24 @@ fun login(ctx: Context) {
         ctx.render("login.rocker.html", model("message", "Login failed!"))
 }
 
+/**
+ * Sets up the general settings and admin credentials
+ */
+fun setup(ctx: Context) {
+    try {
+        val username = ctx.formParam("username").toString()
+        val password = ctx.formParam("password").toString()
+        val verifyPassword = ctx.formParam("verifyPassword").toString()
+        if (password == verifyPassword) {
+            if (databaseController.createUser(username, password, "ADMIN")) {
+                databaseController.toggleSetup()
+                ctx.render("setup.rocker.html", model("message", "Setup succeeded!"))
+            } else ctx.status(400).render("setup.rocker.html", model("message", "User already exists!"))
+        } else ctx.status(400).render("setup.rocker.html", model("message", "Passwords do not match!"))
+    } catch (_: Exception) {
+        ctx.status(400).render("setup.rocker.html", model("message", "An error occurred!"))
+    }
+}
 
 /**
  * Declares the roles in which a user can be in
