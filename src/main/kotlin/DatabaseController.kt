@@ -123,14 +123,27 @@ class DatabaseController(dbFileLocation: String = "main.db") {
     }
 
     /**
-     * Returns the corresponding username using [uuid]
+     * Returns the corresponding username using [userId]
      */
-    fun getUsernameByUUID(uuid: String): String {
+    fun getUsername(userId: Int): String {
         return transaction {
             try {
-                UserData.select { UserData.uuid eq uuid }.map { it[UserData.username] }[0]
+                UserData.select { UserData.id eq userId }.map { it[UserData.username] }[0]
             } catch (_: Exception) {
                 ""
+            }
+        }
+    }
+
+    /**
+     * Returns the corresponding username using [uuid]
+     */
+    fun getUserIdByUUID(uuid: String): Int {
+        return transaction {
+            try {
+                UserData.select { UserData.uuid eq uuid }.map { it[UserData.id] }[0]
+            } catch (_: Exception) {
+                -1
             }
         }
     }
@@ -156,19 +169,17 @@ class DatabaseController(dbFileLocation: String = "main.db") {
             try {
                 UserData.select { UserData.username eq usernameString }.map { it[UserData.id] }[0]
             } catch (_: Exception) {
-                log.warning("User not found!")
                 -1
             }
         }
     }
 
     /**
-     * Returns the corresponding role using [usernameString]
+     * Returns the corresponding role using [userId]
      */
-    fun getRoles(usernameString: String): List<Roles> {
+    fun getRoles(userId: Int): List<Roles> {
         return transaction {
             try {
-                val userId = UserData.select { UserData.username eq usernameString }.map { it[UserData.id] }[0]
                 val userRoleId = UserRoles.select { UserRoles.userId eq userId }.map { it[UserRoles.roleId] }[0]
 
                 val userRoles = mutableListOf<Roles>()

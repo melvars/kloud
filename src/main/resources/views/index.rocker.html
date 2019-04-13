@@ -1,3 +1,13 @@
+@args (String username)
+
 @layout.template("Index", RockerContent.NONE, RockerContent.NONE) -> {
-<h1>Welcome to Kloud!</h1>
+<h1>Welcome to Kloud <i>@username</i>!</h1>
+
+@if(username.length() > 0) {
+<button><a href="/logout/">Logout</a></button>
+} else {
+<button><a href="/login/">Login</a></button>
+}
+
+<button><a href="/files/">Files</a></button>
 }

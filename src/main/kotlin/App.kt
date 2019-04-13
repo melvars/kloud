@@ -19,7 +19,6 @@ import java.util.logging.*
 import kotlin.math.*
 
 const val fileHome = "files"
-// TODO: user home directory
 val databaseController = DatabaseController()
 private val log = Logger.getLogger("App.kt")
 
@@ -42,7 +41,16 @@ fun main() {
          * Main page
          * TODO: Create landing page
          */
-        get("/", { ctx -> ctx.render("index.rocker.html") }, roles(Roles.GUEST))
+        get(
+            "/",
+            { ctx ->
+                ctx.render(
+                    "index.rocker.html",
+                    model("username", databaseController.getUsername(getVerifiedUserId(ctx)))
+                )
+            },
+            roles(Roles.GUEST)
+        )
 
         /**
          * Renders the login page
@@ -56,12 +64,12 @@ fun main() {
         /**
          * Endpoint for user authentication
          */
-        post("/login", { ctx -> login(ctx) }, roles(Roles.GUEST))
+        post("/login", ::login, roles(Roles.GUEST))
 
         /**
          * Logs the user out
          */
-        get("/logout", { ctx -> ctx.clearCookieStore() }, roles(Roles.USER))
+        get("/logout", ::logout, roles(Roles.USER))
 
         /**
          * Renders the setup page (only on initial use)
@@ -77,24 +85,19 @@ fun main() {
         /**
          * Endpoint for setup (only on initial use)
          */
-        post("/setup", { ctx -> setup(ctx) }, roles(Roles.GUEST))
+        post("/setup", ::setup, roles(Roles.GUEST))
 
         /**
          * Renders the file list view
          * TODO: Fix possible security issue with "../"
          */
-        get("/files/*", { ctx -> crawlFiles(ctx) }, roles(Roles.USER))
-
-        /**
-         * Renders the upload rocker template
-         */
-        get("/upload", { ctx -> ctx.render("upload.rocker.html") }, roles(Roles.USER))
+        get("/files/*", ::crawlFiles, roles(Roles.USER))
 
         /**
          * Receives and saves multipart media data
          * TODO: Fix possible security issue with "../"
          */
-        post("/upload/*", { ctx -> upload(ctx) }, roles(Roles.USER))
+        post("/upload/*", ::upload, roles(Roles.USER))
     }
 }
 
@@ -103,8 +106,8 @@ fun main() {
  */
 fun roleManager(handler: Handler, ctx: Context, permittedRoles: Set<Role>) {
     when {
-        getUsername(ctx) == ctx.cookieStore("username") ?: "username" -> handler.handle(ctx)
-        databaseController.getRoles(getUsername(ctx)).any { it in permittedRoles } -> handler.handle(ctx)
+        getVerifiedUserId(ctx) == ctx.cookieStore("userId") ?: "userId" -> handler.handle(ctx)
+        databaseController.getRoles(getVerifiedUserId(ctx)).any { it in permittedRoles } -> handler.handle(ctx)
         //ctx.host()!!.contains("localhost") -> handler.handle(ctx) // DEBUG
         else -> ctx.status(401).redirect("/login")
     }
@@ -113,11 +116,11 @@ fun roleManager(handler: Handler, ctx: Context, permittedRoles: Set<Role>) {
 /**
  * Gets the username and verifies its identity
  */
-fun getUsername(ctx: Context): String {
-    return if (databaseController.getUsernameByUUID(ctx.cookieStore("uuid") ?: "uuid")
-        == ctx.cookieStore("username") ?: "username"
-    ) ctx.cookieStore("username")
-    else ""
+fun getVerifiedUserId(ctx: Context): Int {
+    return if (databaseController.getUserIdByUUID(ctx.cookieStore("uuid") ?: "uuid")
+        == ctx.cookieStore("userId") ?: "userId"
+    ) ctx.cookieStore("userId")
+    else -1
 }
 
 /**
@@ -125,13 +128,15 @@ fun getUsername(ctx: Context): String {
  */
 fun crawlFiles(ctx: Context) {
     try {
+        val usersFileHome = "$fileHome/${getVerifiedUserId(ctx)}"
+        File(usersFileHome).mkdirs()
         when {
-            File("$fileHome/${ctx.splats()[0]}").isDirectory -> {
+            File("$usersFileHome/${ctx.splats()[0]}").isDirectory -> {
                 val files = ArrayList<String>()
-                Files.list(Paths.get("$fileHome/${ctx.splats()[0]}/")).forEach {
+                Files.list(Paths.get("$usersFileHome/${ctx.splats()[0]}/")).forEach {
                     val fileName = it.toString()
-                        .drop(fileHome.length + (if (ctx.splats()[0].isNotEmpty()) ctx.splats()[0].length + 2 else 1))
-                    val filePath = "$fileHome${it.toString().drop(fileHome.length)}"
+                        .drop(usersFileHome.length + (if (ctx.splats()[0].isNotEmpty()) ctx.splats()[0].length + 2 else 1))
+                    val filePath = "$usersFileHome${it.toString().drop(usersFileHome.length)}"
                     files.add(if (File(filePath).isDirectory) "$fileName/" else fileName)
                 }
                 files.sortWith(String.CASE_INSENSITIVE_ORDER)
@@ -142,20 +147,20 @@ fun crawlFiles(ctx: Context) {
                     )
                 )
             }
-            isHumanReadable("$fileHome/${ctx.splats()[0]}") ->
+            isHumanReadable("$usersFileHome/${ctx.splats()[0]}") ->
                 ctx.render(
                     "fileview.rocker.html", model(
                         "content", Files.readAllLines(
-                            Paths.get("$fileHome/${ctx.splats()[0]}"),
+                            Paths.get("$usersFileHome/${ctx.splats()[0]}"),
                             Charsets.UTF_8
                         ).joinToString(separator = "\n"),
-                        "filename", File("$fileHome/${ctx.splats()[0]}").name,
-                        "extension", File("$fileHome/${ctx.splats()[0]}").extension
+                        "filename", File("$usersFileHome/${ctx.splats()[0]}").name,
+                        "extension", File("$usersFileHome/${ctx.splats()[0]}").extension
                     )
                 )
-            else -> ctx.result(FileInputStream(File("$fileHome/${ctx.splats()[0]}")))
+            else -> ctx.result(FileInputStream(File("$usersFileHome/${ctx.splats()[0]}")))
         }
-    } catch (_: java.nio.file.NoSuchFileException) {
+    } catch (_: Exception) {
         throw NotFoundResponse("Error: File or directory does not exist.")
     }
 }
@@ -165,9 +170,9 @@ fun crawlFiles(ctx: Context) {
  */
 fun upload(ctx: Context) {
     ctx.uploadedFiles("file").forEach { (contentType, content, name, extension) ->
-        FileUtil.streamToFile(content, "$fileHome/${ctx.splats()[0]}/$name")
-        val userId = databaseController.getUserId(ctx.cookieStore("username"))
-        databaseController.addFile("$fileHome/${ctx.splats()[0]}/$name", if (userId > 0) userId else -1)
+        val path = "$fileHome/${getVerifiedUserId(ctx)}/${ctx.splats()[0]}/$name"
+        FileUtil.streamToFile(content, path)
+        databaseController.addFile(path, getVerifiedUserId(ctx))
         ctx.redirect("/upload")
     }
 }
@@ -217,8 +222,8 @@ fun login(ctx: Context) {
     if (lastAttemptDifference > 4f.pow(lastHourAttempts) || lastHourAttempts == 0) {
         if (databaseController.checkUser(username, password)) {
             ctx.cookieStore("uuid", databaseController.getUUID(username))
-            ctx.cookieStore("username", username)
-            ctx.render("login.rocker.html", model("message", "Login succeeded!", "counter", 0))
+            ctx.cookieStore("userId", databaseController.getUserId(username))
+            ctx.redirect("/")
         } else {
             databaseController.loginAttempt(DateTime(), requestIp)
             ctx.render(
@@ -244,21 +249,34 @@ fun login(ctx: Context) {
 }
 
 /**
+ * Logs the user out of the system
+ */
+fun logout(ctx: Context) {
+    ctx.clearCookieStore()
+    ctx.redirect("/")
+}
+
+/**
  * Sets up the general settings and admin credentials
  */
 fun setup(ctx: Context) {
-    try {
-        val username = ctx.formParam("username").toString()
-        val password = ctx.formParam("password").toString()
-        val verifyPassword = ctx.formParam("verifyPassword").toString()
-        if (password == verifyPassword) {
-            if (databaseController.createUser(username, password, "ADMIN")) {
-                databaseController.toggleSetup()
-                ctx.render("setup.rocker.html", model("message", "Setup succeeded!"))
-            } else ctx.status(400).render("setup.rocker.html", model("message", "User already exists!"))
-        } else ctx.status(400).render("setup.rocker.html", model("message", "Passwords do not match!"))
-    } catch (_: Exception) {
-        ctx.status(400).render("setup.rocker.html", model("message", "An error occurred!"))
+    if (databaseController.isSetup()) ctx.render(
+        "setup.rocker.html",
+        model("message", "Setup process already finished!")
+    ) else {
+        try {
+            val username = ctx.formParam("username").toString()
+            val password = ctx.formParam("password").toString()
+            val verifyPassword = ctx.formParam("verifyPassword").toString()
+            if (password == verifyPassword) {
+                if (databaseController.createUser(username, password, "ADMIN")) {
+                    databaseController.toggleSetup()
+                    ctx.render("setup.rocker.html", model("message", "Setup succeeded!"))
+                } else ctx.status(400).render("setup.rocker.html", model("message", "User already exists!"))
+            } else ctx.status(400).render("setup.rocker.html", model("message", "Passwords do not match!"))
+        } catch (_: Exception) {
+            ctx.status(400).render("setup.rocker.html", model("message", "An error occurred!"))
+        }
     }
 }
 

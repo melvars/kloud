@@ -1,8 +1,0 @@
-@args (String content)
-
-@layout.template("Upload", RockerContent.NONE, RockerContent.NONE) -> {
-<form action="/upload/test" enctype="multipart/form-data" method="post">
-    <input multiple name="file" type="file">
-    <button>Submit</button>
-</form>
-}
