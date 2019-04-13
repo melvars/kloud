@@ -10,13 +10,16 @@ import io.javalin.rendering.*
 import io.javalin.rendering.template.TemplateUtil.model
 import io.javalin.security.*
 import io.javalin.security.SecurityUtil.roles
+import org.joda.time.*
 import java.io.*
 import java.nio.charset.*
 import java.nio.file.*
 import java.util.*
 import java.util.logging.*
+import kotlin.math.*
 
 const val fileHome = "files"
+// TODO: user home directory
 val databaseController = DatabaseController()
 private val log = Logger.getLogger("App.kt")
 
@@ -53,7 +56,7 @@ fun main() {
         /**
          * Endpoint for user authentication
          */
-        post("/login", { ctx -> login(ctx) }, roles(Roles.GUEST)) // TODO: brute-force protection
+        post("/login", { ctx -> login(ctx) }, roles(Roles.GUEST))
 
         /**
          * Renders the setup page (only on initial use)
@@ -159,7 +162,8 @@ fun crawlFiles(ctx: Context) {
 fun upload(ctx: Context) {
     ctx.uploadedFiles("file").forEach { (contentType, content, name, extension) ->
         FileUtil.streamToFile(content, "$fileHome/${ctx.splats()[0]}/$name")
-        // databaseController.addFile("$fileHome/${ctx.splats()[0]}/$name", USER???: get by Session)
+        val userId = databaseController.getUserId(ctx.cookieStore("username"))
+        databaseController.addFile("$fileHome/${ctx.splats()[0]}/$name", if (userId > 0) userId else -1)
         ctx.redirect("/upload")
     }
 }
@@ -190,13 +194,40 @@ private fun isHumanReadable(filePath: String): Boolean {
 fun login(ctx: Context) {
     val username = ctx.formParam("username").toString()
     val password = ctx.formParam("password").toString()
+    val requestIp = ctx.ip()
 
-    if (databaseController.checkUser(username, password)) {
-        ctx.cookieStore("uuid", databaseController.getUUID(username))
-        ctx.cookieStore("username", username)
-        ctx.render("login.rocker.html", model("message", "Login succeeded!"))
-    } else
-        ctx.render("login.rocker.html", model("message", "Login failed!"))
+    val loginAttempts = databaseController.getLoginAttempts(requestIp)
+    val lastAttemptDifference =
+        if (loginAttempts.isEmpty())
+            -1
+        else Interval(loginAttempts[loginAttempts.indexOfLast { true }].first.toInstant(), Instant()).toDuration()
+            .standardSeconds.toInt()
+
+    var lastHourAttempts = 0
+    loginAttempts.forEach {
+        val difference = Interval(it.first.toInstant(), Instant()).toDuration().standardMinutes.toInt()
+        if (difference < 60) lastHourAttempts += 1
+    }
+    val threshold = 4f.pow(lastHourAttempts)
+
+    if (lastAttemptDifference > threshold) {
+        if (databaseController.checkUser(username, password)) {
+            ctx.cookieStore("uuid", databaseController.getUUID(username))
+            ctx.cookieStore("username", username)
+            ctx.render("login.rocker.html", model("message", "Login succeeded!"))
+        } else {
+            databaseController.loginAttempt(DateTime(), requestIp)
+            ctx.render("login.rocker.html", model("message", "Login failed!"))
+        }
+    } else {
+        databaseController.loginAttempt(DateTime(), requestIp)
+        ctx.render(
+            "login.rocker.html",
+            model(
+                "message", "Please try again in ${if (threshold / 60 > 60) "3600" else threshold.toString()} seconds."
+            )
+        )
+    }
 }
 
 /**

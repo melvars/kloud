@@ -1,12 +1,12 @@
 @args (String message)
 
+
 @layout.template("Login", RockerContent.NONE, RockerContent.NONE) -> {
-<form action="login" method="post">
+<form action="login" id="login-form" method="post">
     <div>
         <label for="username">Username:</label>
         <input id="username" name="username" type="text"/>
-    </div>
-    <div>
+
         <label for="password">Password:</label>
         <input id="password" name="password" type="password"/>
     </div>

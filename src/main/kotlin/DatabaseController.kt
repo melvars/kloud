@@ -3,6 +3,7 @@ package space.anity
 import at.favre.lib.crypto.bcrypt.*
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.*
+import org.joda.time.*
 import java.sql.*
 import java.util.*
 import java.util.logging.*
@@ -17,7 +18,7 @@ class DatabaseController(dbFileLocation: String = "main.db") {
     object FileLocation : Table() {
         val id = integer("id").autoIncrement().primaryKey()
         val location = text("location").uniqueIndex()
-        val username = varchar("username", 24)
+        val userId = integer("userId").references(UserData.id)
     }
 
     /**
@@ -32,6 +33,7 @@ class DatabaseController(dbFileLocation: String = "main.db") {
 
     /**
      * Database table indexing the users with their regarding role (multi line per user)
+     * TODO: Add support for multiple roles per user (read, write, edit, etc)
      */
     object UserRoles : Table() {
         val id = integer("id").autoIncrement().primaryKey()
@@ -48,12 +50,21 @@ class DatabaseController(dbFileLocation: String = "main.db") {
     }
 
     /**
+     * Database table indexing the login attempts of an ip in combination with the timestamp
+     */
+    object LoginAttempts : Table() {
+        val id = integer("id").autoIncrement().primaryKey()
+        val ip = varchar("ip", 16)
+        val timestamp = datetime("timestamp")
+    }
+
+    /**
      * Database table storing general data/states
      */
     object General : Table() {
         val id = integer("id").autoIncrement().primaryKey()
-        val initialUse = integer("initialUse").default(1).primaryKey()
-        val isSetup = integer("isSetup").default(0).primaryKey()
+        val initialUse = bool("initialUse").default(true).primaryKey()
+        val isSetup = bool("isSetup").default(false).primaryKey()
     }
 
     init {
@@ -62,7 +73,14 @@ class DatabaseController(dbFileLocation: String = "main.db") {
 
         // Add tables
         transaction {
-            SchemaUtils.createMissingTablesAndColumns(FileLocation, UserData, UserRoles, RolesData, General)
+            SchemaUtils.createMissingTablesAndColumns(
+                FileLocation,
+                UserData,
+                UserRoles,
+                RolesData,
+                LoginAttempts,
+                General
+            )
         }
     }
 
@@ -132,6 +150,20 @@ class DatabaseController(dbFileLocation: String = "main.db") {
     }
 
     /**
+     * Returns the corresponding userId using [usernameString]
+     */
+    fun getUserId(usernameString: String): Int {
+        return transaction {
+            try {
+                UserData.select { UserData.username eq usernameString }.map { it[UserData.id] }[0]
+            } catch (_: Exception) {
+                log.warning("User not found!")
+                -1
+            }
+        }
+    }
+
+    /**
      * Returns the corresponding role using [usernameString]
      */
     fun getRole(usernameString: String): Roles {
@@ -150,12 +182,12 @@ class DatabaseController(dbFileLocation: String = "main.db") {
     /**
      * Adds the uploaded file to the database
      */
-    fun addFile(fileLocation: String, usernameString: String) {
+    fun addFile(fileLocation: String, usersId: Int) {
         transaction {
             try {
                 FileLocation.insert {
                     it[location] = fileLocation
-                    it[username] = usernameString
+                    it[userId] = usersId
                 }
             } catch (_: org.jetbrains.exposed.exceptions.ExposedSQLException) {
                 log.warning("File already exists!")
@@ -169,7 +201,7 @@ class DatabaseController(dbFileLocation: String = "main.db") {
     fun isSetup(): Boolean {
         return transaction {
             try {
-                General.selectAll().map { it[General.isSetup] }[0] == 1
+                General.selectAll().map { it[General.isSetup] }[0]
             } catch (_: Exception) {
                 false
             }
@@ -181,9 +213,31 @@ class DatabaseController(dbFileLocation: String = "main.db") {
      */
     fun toggleSetup() {
         transaction {
-            General.update({ General.initialUse eq 0 }) {
-                it[General.isSetup] = 1
+            General.update({ General.initialUse eq false }) {
+                it[General.isSetup] = true
             }
+        }
+    }
+
+    /**
+     * Adds an login attempt to the database
+     */
+    fun loginAttempt(dateTime: DateTime, requestIp: String) {
+        transaction {
+            LoginAttempts.insert {
+                it[timestamp] = dateTime
+                it[ip] = requestIp
+            }
+        }
+    }
+
+    /**
+     * Gets all login attempts of [requestIp]
+     */
+    fun getLoginAttempts(requestIp: String): List<Pair<DateTime, String>> {
+        return transaction {
+            LoginAttempts.select { LoginAttempts.ip eq requestIp }
+                .map { it[LoginAttempts.timestamp] to it[LoginAttempts.ip] }
         }
     }
 
@@ -192,7 +246,7 @@ class DatabaseController(dbFileLocation: String = "main.db") {
      */
     fun initDatabase() {
         val initialUseRow = transaction { General.selectAll().map { it[General.initialUse] } }
-        if (initialUseRow.isEmpty() || initialUseRow[0] == 1) {
+        if (initialUseRow.isEmpty() || initialUseRow[0]) {
             transaction {
                 RolesData.insert {
                     it[role] = "ADMIN"
@@ -210,7 +264,7 @@ class DatabaseController(dbFileLocation: String = "main.db") {
                 }
 
                 General.insert {
-                    it[initialUse] = 0
+                    it[initialUse] = false
                 }
             }
         } else {
