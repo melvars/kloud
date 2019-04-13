@@ -49,7 +49,7 @@ fun main() {
          */
         get(
             "/login",
-            { ctx -> ctx.render("login.rocker.html", model("message", "")) },
+            { ctx -> ctx.render("login.rocker.html", model("message", "", "counter", 0)) },
             roles(Roles.GUEST)
         )
 
@@ -208,23 +208,32 @@ fun login(ctx: Context) {
         val difference = Interval(it.first.toInstant(), Instant()).toDuration().standardMinutes.toInt()
         if (difference < 60) lastHourAttempts += 1
     }
-    val threshold = 4f.pow(lastHourAttempts)
+    val nextThreshold = 4f.pow(lastHourAttempts + 1)
 
-    if (lastAttemptDifference > threshold) {
+    if (lastAttemptDifference > 4f.pow(lastHourAttempts)) {
         if (databaseController.checkUser(username, password)) {
             ctx.cookieStore("uuid", databaseController.getUUID(username))
             ctx.cookieStore("username", username)
-            ctx.render("login.rocker.html", model("message", "Login succeeded!"))
+            ctx.render("login.rocker.html", model("message", "Login succeeded!", "counter", 0))
         } else {
             databaseController.loginAttempt(DateTime(), requestIp)
-            ctx.render("login.rocker.html", model("message", "Login failed!"))
+            ctx.render(
+                "login.rocker.html",
+                model(
+                    "message",
+                    "Login failed!",
+                    "counter", if (nextThreshold / 60 > 60) 3600 else nextThreshold.toInt()
+                )
+            )
         }
     } else {
         databaseController.loginAttempt(DateTime(), requestIp)
         ctx.render(
             "login.rocker.html",
             model(
-                "message", "Please try again in ${if (threshold / 60 > 60) "3600" else threshold.toString()} seconds."
+                "message",
+                "Too many request.",
+                "counter", if (nextThreshold / 60 > 60) 3600 else nextThreshold.toInt()
             )
         )
     }
