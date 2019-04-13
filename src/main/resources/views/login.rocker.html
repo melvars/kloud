@@ -20,6 +20,9 @@
 
     @if(message.length() > 0) {
     <small>@message</small>
+    }
+
+    @if(counter > 0) {
     <small id="tryAgain">Please try again in <span id="counter">@counter</span> seconds.</small>
     }
 </form>

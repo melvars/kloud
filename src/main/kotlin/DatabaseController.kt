@@ -33,7 +33,6 @@ class DatabaseController(dbFileLocation: String = "main.db") {
 
     /**
      * Database table indexing the users with their regarding role (multi line per user)
-     * TODO: Add support for multiple roles per user (read, write, edit, etc)
      */
     object UserRoles : Table() {
         val id = integer("id").autoIncrement().primaryKey()
@@ -166,15 +165,32 @@ class DatabaseController(dbFileLocation: String = "main.db") {
     /**
      * Returns the corresponding role using [usernameString]
      */
-    fun getRole(usernameString: String): Roles {
+    fun getRoles(usernameString: String): List<Roles> {
         return transaction {
             try {
                 val userId = UserData.select { UserData.username eq usernameString }.map { it[UserData.id] }[0]
                 val userRoleId = UserRoles.select { UserRoles.userId eq userId }.map { it[UserRoles.roleId] }[0]
-                val userRole = RolesData.select { RolesData.id eq userRoleId }.map { it[RolesData.role] }[0]
-                if (userRole == "ADMIN") Roles.ADMIN else Roles.USER
+
+                val userRoles = mutableListOf<Roles>()
+                RolesData.select { RolesData.id eq userRoleId }.map { it[RolesData.role] }.forEach {
+                    when (it) {
+                        "GUEST" -> {
+                            userRoles.add(Roles.GUEST)
+                        }
+                        "USER" -> {
+                            userRoles.add(Roles.GUEST)
+                            userRoles.add(Roles.USER)
+                        }
+                        "ADMIN" -> {
+                            userRoles.add(Roles.GUEST)
+                            userRoles.add(Roles.USER)
+                            userRoles.add(Roles.ADMIN)
+                        }
+                    }
+                }
+                userRoles
             } catch (_: Exception) {
-                Roles.GUEST
+                listOf(Roles.GUEST)
             }
         }
     }

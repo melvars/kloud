@@ -59,6 +59,11 @@ fun main() {
         post("/login", { ctx -> login(ctx) }, roles(Roles.GUEST))
 
         /**
+         * Logs the user out
+         */
+        get("/logout", { ctx -> ctx.clearCookieStore() }, roles(Roles.USER))
+
+        /**
          * Renders the setup page (only on initial use)
          */
         get("/setup", { ctx ->
@@ -75,10 +80,10 @@ fun main() {
         post("/setup", { ctx -> setup(ctx) }, roles(Roles.GUEST))
 
         /**
-         * Sends a json object of filenames in [fileHome]s
+         * Renders the file list view
          * TODO: Fix possible security issue with "../"
          */
-        get("/files/*", { ctx -> crawlFiles(ctx) }, roles(Roles.ADMIN))
+        get("/files/*", { ctx -> crawlFiles(ctx) }, roles(Roles.USER))
 
         /**
          * Renders the upload rocker template
@@ -89,7 +94,7 @@ fun main() {
          * Receives and saves multipart media data
          * TODO: Fix possible security issue with "../"
          */
-        post("/upload/*", { ctx -> upload(ctx) }, roles(Roles.ADMIN))
+        post("/upload/*", { ctx -> upload(ctx) }, roles(Roles.USER))
     }
 }
 
@@ -97,12 +102,11 @@ fun main() {
  * Sets up the roles with the database and declares the handling of roles
  */
 fun roleManager(handler: Handler, ctx: Context, permittedRoles: Set<Role>) {
-    val userRole = databaseController.getRole(getUsername(ctx))
     when {
         getUsername(ctx) == ctx.cookieStore("username") ?: "username" -> handler.handle(ctx)
-        permittedRoles.contains(userRole) -> handler.handle(ctx)
+        databaseController.getRoles(getUsername(ctx)).any { it in permittedRoles } -> handler.handle(ctx)
         //ctx.host()!!.contains("localhost") -> handler.handle(ctx) // DEBUG
-        else -> ctx.status(401).result("This site isn't available for you.")
+        else -> ctx.status(401).redirect("/login")
     }
 }
 
@@ -210,7 +214,7 @@ fun login(ctx: Context) {
     }
     val nextThreshold = 4f.pow(lastHourAttempts + 1)
 
-    if (lastAttemptDifference > 4f.pow(lastHourAttempts)) {
+    if (lastAttemptDifference > 4f.pow(lastHourAttempts) || lastHourAttempts == 0) {
         if (databaseController.checkUser(username, password)) {
             ctx.cookieStore("uuid", databaseController.getUUID(username))
             ctx.cookieStore("username", username)
