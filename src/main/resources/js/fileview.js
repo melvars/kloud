@@ -40,13 +40,13 @@ code.addEventListener("change", () => {
         content.classList.remove("prettyprinted");
         content.innerHTML = "";
         content.classList.add("linenums");
-        content.innerHTML = originalContent;
+        content.innerText = originalContent;
         PR.prettyPrint();
     } else {
         content.classList.remove("prettyprinted");
         content.innerHTML = "";
         content.classList.remove("linenums");
-        content.innerHTML = originalContent;
+        content.innerText = originalContent;
         PR.prettyPrint();
     }
 });
