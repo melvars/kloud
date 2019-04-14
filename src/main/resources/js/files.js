@@ -1,5 +1,7 @@
 const drop = document.getElementById("drop");
 
+setListeners();
+
 drop.addEventListener('dragover', e => {
     e.stopPropagation();
     e.preventDefault();
@@ -7,7 +9,7 @@ drop.addEventListener('dragover', e => {
     drop.style.background = "rgba(12,99,250,0.3)";
 });
 
-drop.addEventListener('dragleave', e =>
+drop.addEventListener('dragleave', () =>
     drop.style.background = "white"
 );
 
@@ -18,20 +20,22 @@ drop.addEventListener('drop', e => {
     drop.style.background = "white";
     const files = e.dataTransfer.files;
 
-    for (let i = 0; i < files.length; i++) {
-        let request = new XMLHttpRequest();
-        let formData = new FormData();
+    for (const file of files) {
+        const request = new XMLHttpRequest();
+        const formData = new FormData();
 
         // TODO: Consider using current date due to updated lastModified state at upload
-        const date = new Date(files[i].lastModified);
-        const lastModified = `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
+        const date = new Date(file.lastModified);
 
         const row = document.getElementById("table").insertRow(-1);
-        row.insertCell(0).innerHTML = `<a class="filename" href="${files[i].name}">${files[i].name}</a>`;
-        row.insertCell(1).innerHTML = `<a class="filename" href="${files[i].name}">${bytesToSize(files[i].size)}</a>`;
-        row.insertCell(2).innerHTML = `<a class="filename" href="${files[i].name}">${lastModified}</a>`;
+        row.setAttribute("data-href", file.name);
+        row.insertCell(0).innerHTML = file.name;
+        row.insertCell(1).innerHTML = bytesToSize(file.size);
+        row.insertCell(2).innerHTML = `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
 
-        formData.append("file", files[i]);
+        //setListeners();
+
+        formData.append("file", file);
         request.open("POST", "/upload/" + path);
         request.send(formData);
     }
@@ -43,3 +47,39 @@ drop.addEventListener('drop', e => {
         return Math.round(bytes / Math.pow(1024, i), 2) + ' ' + sizes[i];
     }
 });
+
+function setListeners() {
+    // binary files
+    document.querySelectorAll("[data-path]").forEach(element => {
+        const images = ["jpg", "jpeg", "png"]; // TODO: Add other file types
+
+        const filename = element.getAttribute("data-path");
+        const extension = /(?:\.([^.]+))?$/.exec(filename)[1].toLowerCase();
+
+        if (images.indexOf(extension) > -1) {
+            element.setAttribute("data-bp", filename);
+            element.setAttribute("data-image", "");
+        }
+
+        element.addEventListener("click", () => {
+            if (images.indexOf(extension) === -1) window.location = filename;
+        });
+    });
+
+    // images
+    document.querySelectorAll("[data-image]").forEach(element => {
+        element.addEventListener("click", image => {
+            BigPicture({
+                el: image.currentTarget,
+                gallery: document.querySelectorAll("[data-image]")
+            })
+        });
+    });
+
+    // normal files
+    document.querySelectorAll("[data-href]").forEach(element => {
+        element.addEventListener("click", () => {
+            window.location = element.getAttribute("data-href");
+        })
+    });
+}

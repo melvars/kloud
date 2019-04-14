@@ -144,7 +144,8 @@ fun crawlFiles(ctx: Context) {
                         arrayOf(
                             if (File(filePath).isDirectory) "$fileName/" else fileName,
                             humanReadableBytes(File(filePath).length()),
-                            SimpleDateFormat("MM/dd/yyyy HH:mm:ss").format(File(filePath).lastModified()).toString()
+                            SimpleDateFormat("MM/dd/yyyy HH:mm:ss").format(File(filePath).lastModified()).toString(),
+                            if (File(filePath).isDirectory) "true" else isHumanReadable(filePath).toString()
                         )
                     )
                 }

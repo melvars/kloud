@@ -7,6 +7,7 @@
 
 @js => {
 <script>const path = "@path";</script>
+<script src="/js/imagePreview.js"></script>
 <script src="/js/files.js"></script>
 }
 
@@ -23,17 +24,26 @@
         </thead>
 
         <tbody>
-        <tr>
-            <td><a class="filename" href="../">../</a></td>
-            <td><a class="filename" href="../"></a></td>
-            <td><a class="filename" href="../"></a></td>
+        <tr data-href="../">
+            <td>../</td>
+            <td></td>
+            <td></td>
         </tr>
+
         @for (String[] fileArray : files) {
-        <tr>
-            <td><a class="filename" href="@fileArray[0]">@fileArray[0]</a></td>
-            <td><a class="filename" href="@fileArray[0]">@fileArray[1]</a></td>
-            <td><a class="filename" href="@fileArray[0]">@fileArray[2]</a></td>
+        @if (fileArray[3] == "true") {
+        <tr data-href="@fileArray[0]">
+            <td>@fileArray[0]</td>
+            <td>@fileArray[1]</td>
+            <td>@fileArray[2]</td>
         </tr>
+        } else {
+        <tr data-path="@fileArray[0]">
+            <td>@fileArray[0]</td>
+            <td>@fileArray[1]</td>
+            <td>@fileArray[2]</td>
+        </tr>
+        }
         }
         </tbody>
     </table>

@@ -14,10 +14,12 @@ table th, table td {
     text-align: center;
 }
 
-a.filename {
-    color: black;
-    text-decoration: none;
-    margin-bottom: 5px;;
+table tr {
+    cursor: pointer;
+}
+
+table tr:hover {
+    background-color: #e8e8e8;
 }
 
 .drop {
