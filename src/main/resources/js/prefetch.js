@@ -4,22 +4,22 @@ let urlToPreload;
 let mouseoverTimer;
 let lastTouchTimestamp;
 
-const prefetcher = document.createElement('link');
-const isSupported = prefetcher.relList && prefetcher.relList.supports && prefetcher.relList.supports('prefetch');
+const prefetcher = document.createElement("link");
+const isSupported = prefetcher.relList && prefetcher.relList.supports && prefetcher.relList.supports("prefetch");
 const isDataSaverEnabled = navigator.connection && navigator.connection.saveData;
-const allowQueryString = 'instantAllowQueryString' in document.body.dataset;
-const allowExternalLinks = 'instantAllowExternalLinks' in document.body.dataset;
+const allowQueryString = "instantAllowQueryString" in document.body.dataset;
+const allowExternalLinks = "instantAllowExternalLinks" in document.body.dataset;
 
 if (isSupported && !isDataSaverEnabled) {
-    prefetcher.rel = 'prefetch';
+    prefetcher.rel = "prefetch";
     document.head.appendChild(prefetcher);
 
     const eventListenersOptions = {
         capture: true,
         passive: true,
     };
-    document.addEventListener('touchstart', touchstartListener, eventListenersOptions);
-    document.addEventListener('mouseover', mouseoverListener, eventListenersOptions)
+    document.addEventListener("touchstart", touchstartListener, eventListenersOptions);
+    document.addEventListener("mouseover", mouseoverListener, eventListenersOptions)
 }
 
 function touchstartListener(event) {
@@ -27,17 +27,17 @@ function touchstartListener(event) {
      * must be assigned on touchstart to be measured on mouseover. */
     lastTouchTimestamp = performance.now();
 
-    const linkElement = event.target.closest('a');
+    const linkElement = event.target.closest("tr[data-href]");
 
     if (!isPreloadable(linkElement)) {
         return
     }
 
-    linkElement.addEventListener('touchcancel', touchendAndTouchcancelListener, {passive: true});
-    linkElement.addEventListener('touchend', touchendAndTouchcancelListener, {passive: true});
+    linkElement.addEventListener("touchcancel", touchendAndTouchcancelListener, {passive: true});
+    linkElement.addEventListener("touchend", touchendAndTouchcancelListener, {passive: true});
 
-    urlToPreload = linkElement.href;
-    preload(linkElement.href)
+    urlToPreload = window.location.href + linkElement.getAttribute("data-href");
+    preload(urlToPreload)
 }
 
 function touchendAndTouchcancelListener() {
@@ -50,24 +50,24 @@ function mouseoverListener(event) {
         return
     }
 
-    const linkElement = event.target.closest('a');
+    const linkElement = event.target.closest("tr[data-href]");
 
     if (!isPreloadable(linkElement)) {
         return
     }
 
-    linkElement.addEventListener('mouseout', mouseoutListener, {passive: true});
+    linkElement.addEventListener("mouseout", mouseoutListener, {passive: true});
 
-    urlToPreload = linkElement.href;
+    urlToPreload = window.location.href + linkElement.getAttribute("data-href");
 
     mouseoverTimer = setTimeout(() => {
-        preload(linkElement.href);
+        preload(urlToPreload);
         mouseoverTimer = undefined
     }, 65)
 }
 
 function mouseoutListener(event) {
-    if (event.relatedTarget && event.target.closest('a') === event.relatedTarget.closest('a')) {
+    if (event.relatedTarget && event.target.closest("tr[data-href]") === event.relatedTarget.closest("tr[data-href]")) {
         return
     }
 
@@ -81,29 +81,29 @@ function mouseoutListener(event) {
 }
 
 function isPreloadable(linkElement) {
-    if (!linkElement || !linkElement.href) {
+    if (!linkElement || !(window.location.href + linkElement.getAttribute("data-href"))) {
         return
     }
 
-    if (urlToPreload === linkElement.href) {
+    if (urlToPreload === window.location.href + linkElement.getAttribute("data-href")) {
         return
     }
 
-    const preloadLocation = new URL(linkElement.href);
+    const preloadLocation = new URL(window.location.href + linkElement.getAttribute("data-href"));
 
-    if (!allowExternalLinks && preloadLocation.origin !== location.origin && !('instant' in linkElement.dataset)) {
+    if (!allowExternalLinks && preloadLocation.origin !== location.origin && !("instant" in linkElement.dataset)) {
         return
     }
 
-    if (!['http:', 'https:'].includes(preloadLocation.protocol)) {
+    if (!["http:", "https:"].includes(preloadLocation.protocol)) {
         return
     }
 
-    if (preloadLocation.protocol === 'http:' && location.protocol === 'https:') {
+    if (preloadLocation.protocol === "http:" && location.protocol === "https:") {
         return
     }
 
-    if (!allowQueryString && preloadLocation.search && !('instant' in linkElement.dataset)) {
+    if (!allowQueryString && preloadLocation.search && !("instant" in linkElement.dataset)) {
         return
     }
 
@@ -111,7 +111,7 @@ function isPreloadable(linkElement) {
         return
     }
 
-    if ('noInstant' in linkElement.dataset) {
+    if ("noInstant" in linkElement.dataset) {
         return
     }
 
@@ -123,5 +123,5 @@ function preload(url) {
 }
 
 function stopPreloading() {
-    prefetcher.removeAttribute('href')
+    prefetcher.removeAttribute("href")
 }
