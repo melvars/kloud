@@ -22,6 +22,10 @@ table tr:hover {
     background-color: #e8e8e8;
 }
 
+table thead tr:hover {
+    background-color: #ffffff;
+}
+
 .drop {
     padding: 8px;
     min-height: calc(100vh - 16px);
