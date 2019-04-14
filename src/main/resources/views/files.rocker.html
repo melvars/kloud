@@ -12,12 +12,30 @@
 
 @layout.template(files.size() + " Files", css, js) -> {
 <div class="drop" id="drop">
-    <h1>/@path</h1>
-    <a class="filename" href="../">../</a><br>
-    <hr>
-    @for (String file : files) {
-    <a class="filename" href="@file">@file</a><br>
-    <hr>
-    }
+    <h2>/@path</h2>
+    <table id="table">
+        <thead>
+        <tr>
+            <th>Name</th>
+            <th>Size</th>
+            <th>Last modified</th>
+        </tr>
+        </thead>
+
+        <tbody>
+        <tr>
+            <td><a class="filename" href="../">../</a></td>
+            <td><a class="filename" href="../"></a></td>
+            <td><a class="filename" href="../"></a></td>
+        </tr>
+        @for (String[] fileArray : files) {
+        <tr>
+            <td><a class="filename" href="@fileArray[0]">@fileArray[0]</a></td>
+            <td><a class="filename" href="@fileArray[0]">@fileArray[1]</a></td>
+            <td><a class="filename" href="@fileArray[0]">@fileArray[2]</a></td>
+        </tr>
+        }
+        </tbody>
+    </table>
 </div>
 }

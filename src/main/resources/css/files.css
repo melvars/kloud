@@ -1,3 +1,19 @@
+table {
+    width: 100%;
+}
+
+table, td, th {
+    vertical-align: middle;
+    border-spacing: 0;
+    white-space: nowrap;
+}
+
+table th, table td {
+    padding: 10px;
+    border-bottom: 1px solid gray;
+    text-align: center;
+}
+
 a.filename {
     color: black;
     text-decoration: none;

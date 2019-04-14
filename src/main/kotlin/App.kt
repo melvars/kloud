@@ -14,6 +14,7 @@ import org.joda.time.*
 import java.io.*
 import java.nio.charset.*
 import java.nio.file.*
+import java.text.*
 import java.util.*
 import java.util.logging.*
 import kotlin.math.*
@@ -55,11 +56,13 @@ fun main() {
         /**
          * Renders the login page
          */
-        get(
-            "/login",
-            { ctx -> ctx.render("login.rocker.html", model("message", "", "counter", 0)) },
-            roles(Roles.GUEST)
-        )
+        get("/login", { ctx ->
+            if (getVerifiedUserId(ctx) > 0) ctx.redirect("/")
+            else ctx.render(
+                "login.rocker.html",
+                model("message", "", "counter", 0)
+            )
+        }, roles(Roles.GUEST))
 
         /**
          * Endpoint for user authentication
@@ -132,14 +135,20 @@ fun crawlFiles(ctx: Context) {
         File(usersFileHome).mkdirs()
         when {
             File("$usersFileHome/${ctx.splats()[0]}").isDirectory -> {
-                val files = ArrayList<String>()
+                val files = ArrayList<Array<String>>()
                 Files.list(Paths.get("$usersFileHome/${ctx.splats()[0]}/")).forEach {
                     val fileName = it.toString()
                         .drop(usersFileHome.length + (if (ctx.splats()[0].isNotEmpty()) ctx.splats()[0].length + 2 else 1))
                     val filePath = "$usersFileHome${it.toString().drop(usersFileHome.length)}"
-                    files.add(if (File(filePath).isDirectory) "$fileName/" else fileName)
+                    files.add(
+                        arrayOf(
+                            if (File(filePath).isDirectory) "$fileName/" else fileName,
+                            humanReadableBytes(File(filePath).length()),
+                            SimpleDateFormat("MM/dd/yyyy HH:mm:ss").format(File(filePath).lastModified()).toString()
+                        )
+                    )
                 }
-                files.sortWith(String.CASE_INSENSITIVE_ORDER)
+                //files.sortWith(String.CASE_INSENSITIVE_ORDER)
                 ctx.render(
                     "files.rocker.html", model(
                         "files", files,
@@ -169,11 +178,10 @@ fun crawlFiles(ctx: Context) {
  * Saves multipart media data into requested directory
  */
 fun upload(ctx: Context) {
-    ctx.uploadedFiles("file").forEach { (contentType, content, name, extension) ->
+    ctx.uploadedFiles("file").forEach { (_, content, name, _) ->
         val path = "$fileHome/${getVerifiedUserId(ctx)}/${ctx.splats()[0]}/$name"
         FileUtil.streamToFile(content, path)
         databaseController.addFile(path, getVerifiedUserId(ctx))
-        ctx.redirect("/upload")
     }
 }
 
@@ -197,10 +205,20 @@ private fun isHumanReadable(filePath: String): Boolean {
     return d > 0.95
 }
 
+fun humanReadableBytes(bytes: Long): String {
+    val unit = 1024
+    if (bytes < unit) return "$bytes B"
+    val exp = (Math.log(bytes.toDouble()) / Math.log(unit.toDouble())).toInt()
+    val pre = "KMGTPE"[exp - 1] + "i"
+    return String.format("%.1f %sB", bytes / Math.pow(unit.toDouble(), exp.toDouble()), pre)
+}
+
 /**
  * Checks and verifies users credentials and logs the user in
  */
 fun login(ctx: Context) {
+    if (getVerifiedUserId(ctx) > 0) ctx.redirect("/")
+
     val username = ctx.formParam("username").toString()
     val password = ctx.formParam("password").toString()
     val requestIp = ctx.ip()
