@@ -33,6 +33,8 @@ if (extension === "md" || extension === "html") {
             settings.style.display = "none";
         }
     });
+} else {
+    settings.style.display = "block";
 }
 
 code.addEventListener("change", () => {
