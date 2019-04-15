@@ -3,6 +3,7 @@
 }
 
 table {
+    table-layout: fixed;
     width: 100%;
 }
 
@@ -28,6 +29,27 @@ table tr:hover {
 
 table thead tr:hover {
     background-color: #ffffff;
+}
+
+tr td, tr th {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+tr td:nth-child(0) {
+    max-width: 40%;
+}
+
+tr td:nth-child(1) {
+    max-width: 20%;
+}
+
+tr td:nth-child(2) {
+    max-width: 30%;
+}
+
+tr td:nth-child(3) {
+    max-width: 10%;
 }
 
 .drop {
