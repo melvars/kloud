@@ -125,7 +125,7 @@ fun roleManager(handler: Handler, ctx: Context, permittedRoles: Set<Role>) {
  * Gets the username and verifies its identity
  */
 fun getVerifiedUserId(ctx: Context): Int {
-    return if (databaseController.getUserIdByUUID(ctx.cookieStore("uuid") ?: "uuid")
+    return if (databaseController.getUserIdByVerificationId(ctx.cookieStore("verification") ?: "verification")
         == ctx.cookieStore("userId") ?: "userId"
     ) ctx.cookieStore("userId")
     else -1
@@ -185,7 +185,7 @@ fun crawlFiles(ctx: Context) {
  */
 fun upload(ctx: Context) {
     ctx.uploadedFiles("file").forEach { (_, content, name, _) ->
-        val path = "$fileHome/${getVerifiedUserId(ctx)}/${ctx.splats()[0]}/$name"
+        val path = "${ctx.splats()[0]}/$name"
         FileUtil.streamToFile(content, path)
         databaseController.addFile(path, getVerifiedUserId(ctx))
     }
@@ -245,7 +245,7 @@ fun login(ctx: Context) {
 
     if (lastAttemptDifference > 4f.pow(lastHourAttempts) || lastHourAttempts == 0) {
         if (databaseController.checkUser(username, password)) {
-            ctx.cookieStore("uuid", databaseController.getUUID(username))
+            ctx.cookieStore("verification", databaseController.getVerificationId(username))
             ctx.cookieStore("userId", databaseController.getUserId(username))
             ctx.redirect("/")
         } else {

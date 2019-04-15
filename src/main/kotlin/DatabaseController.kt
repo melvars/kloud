@@ -5,7 +5,6 @@ import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.*
 import org.joda.time.*
 import java.sql.*
-import java.util.*
 import java.util.logging.*
 
 class DatabaseController(dbFileLocation: String = "main.db") {
@@ -17,8 +16,9 @@ class DatabaseController(dbFileLocation: String = "main.db") {
      */
     object FileLocation : Table() {
         val id = integer("id").autoIncrement().primaryKey()
-        val location = text("location").uniqueIndex()
+        val path = text("path").uniqueIndex()
         val userId = integer("userId").references(UserData.id)
+        val accessId = varchar("accessId", 64).uniqueIndex() // TODO: Add file sharing
     }
 
     /**
@@ -28,7 +28,7 @@ class DatabaseController(dbFileLocation: String = "main.db") {
         val id = integer("id").autoIncrement().primaryKey()
         val username = varchar("username", 24).uniqueIndex()
         val password = varchar("password", 64)
-        val uuid = varchar("uuid", 64)
+        val verification = varchar("verification", 64).uniqueIndex()
     }
 
     /**
@@ -92,7 +92,7 @@ class DatabaseController(dbFileLocation: String = "main.db") {
                 val usersId = UserData.insert {
                     it[username] = usernameString
                     it[password] = BCrypt.withDefaults().hashToString(12, passwordString.toCharArray())
-                    it[uuid] = UUID.randomUUID().toString()
+                    it[verification] = generateRandomString(64)
                 }[UserData.id]
 
                 UserRoles.insert { roles ->
@@ -136,12 +136,12 @@ class DatabaseController(dbFileLocation: String = "main.db") {
     }
 
     /**
-     * Returns the corresponding username using [uuid]
+     * Returns the corresponding username using [verificationId]
      */
-    fun getUserIdByUUID(uuid: String): Int {
+    fun getUserIdByVerificationId(verificationId: String): Int {
         return transaction {
             try {
-                UserData.select { UserData.uuid eq uuid }.map { it[UserData.id] }[0]
+                UserData.select { UserData.verification eq verificationId }.map { it[UserData.id] }[0]
             } catch (_: Exception) {
                 -1
             }
@@ -149,12 +149,12 @@ class DatabaseController(dbFileLocation: String = "main.db") {
     }
 
     /**
-     * Returns the corresponding uuid using [usernameString]
+     * Returns the corresponding verification id using [usernameString]
      */
-    fun getUUID(usernameString: String): String {
+    fun getVerificationId(usernameString: String): String {
         return transaction {
             try {
-                UserData.select { UserData.username eq usernameString }.map { it[UserData.uuid] }[0]
+                UserData.select { UserData.username eq usernameString }.map { it[UserData.verification] }[0]
             } catch (_: Exception) {
                 ""
             }
@@ -213,8 +213,9 @@ class DatabaseController(dbFileLocation: String = "main.db") {
         transaction {
             try {
                 FileLocation.insert {
-                    it[location] = fileLocation
+                    it[path] = fileLocation
                     it[userId] = usersId
+                    it[accessId] = generateRandomString(64)
                 }
             } catch (_: org.jetbrains.exposed.exceptions.ExposedSQLException) {
                 log.warning("File already exists!")
@@ -228,7 +229,7 @@ class DatabaseController(dbFileLocation: String = "main.db") {
     fun deleteFile(fileLocation: String, userId: Int) {
         transaction {
             try {
-                FileLocation.deleteWhere { (FileLocation.location eq fileLocation) and (FileLocation.userId eq userId) }
+                FileLocation.deleteWhere { (FileLocation.path eq fileLocation) and (FileLocation.userId eq userId) }
             } catch (_: org.jetbrains.exposed.exceptions.ExposedSQLException) {
                 log.warning("File does not exist!")
             }
@@ -310,5 +311,15 @@ class DatabaseController(dbFileLocation: String = "main.db") {
         } else {
             log.info("Already initialized Database.")
         }
+    }
+
+    /**
+     * Generates a random string with [length] characters
+     */
+    private fun generateRandomString(length: Int): String {
+        val allowedChars = "ABCDEFGHIJKLMNOPQRSTUVWXTZabcdefghiklmnopqrstuvwxyz0123456789"
+        return (1..length)
+            .map { allowedChars.random() }
+            .joinToString("")
     }
 }
