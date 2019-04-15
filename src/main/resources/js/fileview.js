@@ -12,9 +12,10 @@ const originalContent = content.innerText;
 
 if (extension === "md" || extension === "html") {
     if (extension === "md")
-        preview.innerHTML = marked(originalContent);
-    else if (extension === "html")
-        preview.innerHTML = marked(originalContent);
+        preview.src = "data:text/html;charset=utf-8," + encodeURI(marked(originalContent));
+    else if (extension === "html") {
+        preview.src = "data:text/html;charset=utf-8," + encodeURI(originalContent);
+    }
 
     preview.style.display = "block";
     raw.style.display = "block";

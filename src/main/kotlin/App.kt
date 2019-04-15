@@ -148,7 +148,7 @@ fun crawlFiles(ctx: Context) {
                     files.add(
                         arrayOf(
                             if (File(filePath).isDirectory) "$fileName/" else fileName,
-                            humanReadableBytes(File(filePath).length()),
+                            humanReadableBytes(File(filePath).length()), // TODO: Fix file size for directories
                             SimpleDateFormat("MM/dd/yyyy HH:mm:ss").format(File(filePath).lastModified()).toString(),
                             if (File(filePath).isDirectory) "true" else isHumanReadable(filePath).toString()
                         )
@@ -186,7 +186,7 @@ fun crawlFiles(ctx: Context) {
 fun upload(ctx: Context) {
     ctx.uploadedFiles("file").forEach { (_, content, name, _) ->
         val path = "${ctx.splats()[0]}/$name"
-        FileUtil.streamToFile(content, path)
+        FileUtil.streamToFile(content, "$fileHome/${getVerifiedUserId(ctx)}/$path")
         databaseController.addFile(path, getVerifiedUserId(ctx))
     }
 }
@@ -310,8 +310,8 @@ fun setup(ctx: Context) {
 fun delete(ctx: Context) {
     val userId = getVerifiedUserId(ctx)
     if (userId > 0) {
-        val path = "$fileHome/$userId/${ctx.splats()[0]}"
-        File(path).delete()
+        val path = ctx.splats()[0]
+        File("$fileHome/$userId/$path").delete()
         databaseController.deleteFile(path, userId)
     }
 }

@@ -217,7 +217,7 @@ class DatabaseController(dbFileLocation: String = "main.db") {
                     it[userId] = usersId
                     it[accessId] = generateRandomString(64)
                 }
-            } catch (_: org.jetbrains.exposed.exceptions.ExposedSQLException) {
+            } catch (err: org.jetbrains.exposed.exceptions.ExposedSQLException) {
                 log.warning("File already exists!")
             }
         }

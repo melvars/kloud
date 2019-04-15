@@ -2,6 +2,11 @@
     display: none;
 }
 
-.prettyprint {
+/* TODO: Fix duplicate scrollbars in previews */
+.prettyprint, .preview {
+    position: absolute;
+    min-height: 100%;
+    width: 100%;
     border: none !important;
+    overflow: visible;
 }
