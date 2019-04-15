@@ -308,9 +308,11 @@ fun setup(ctx: Context) {
  * Deletes the requested file
  */
 fun delete(ctx: Context) {
-    if (getVerifiedUserId(ctx) > 0) {
-        File("$fileHome/${getVerifiedUserId(ctx)}/${ctx.splats()[0]}").delete()
-        // TODO: delete from database
+    val userId = getVerifiedUserId(ctx)
+    if (userId > 0) {
+        val path = "$fileHome/$userId/${ctx.splats()[0]}"
+        File(path).delete()
+        databaseController.deleteFile(path, userId)
     }
 }
 

@@ -228,9 +228,9 @@ class DatabaseController(dbFileLocation: String = "main.db") {
     fun deleteFile(fileLocation: String, userId: Int) {
         transaction {
             try {
-                FileLocation.deleteWhere { FileLocation.location eq fileLocation and FileLocation. }
+                FileLocation.deleteWhere { (FileLocation.location eq fileLocation) and (FileLocation.userId eq userId) }
             } catch (_: org.jetbrains.exposed.exceptions.ExposedSQLException) {
-
+                log.warning("File does not exist!")
             }
         }
     }
