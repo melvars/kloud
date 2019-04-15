@@ -33,7 +33,7 @@ drop.addEventListener('drop', e => {
         row.insertCell(0).innerHTML = file.name;
         row.insertCell(1).innerHTML = bytesToSize(file.size);
         row.insertCell(2).innerHTML = `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
-        row.insertCell(3).innerHTML = "<td><button class='delete'>&times;</button></td>";
+        row.insertCell(3).innerHTML = "<td><button class='delete'><i class='icon ion-md-trash'></i></button></td>";
 
         setListeners();
 
@@ -79,7 +79,7 @@ function setListeners() {
         });
     });
 
-// images
+    // images
     document.querySelectorAll("[data-image]").forEach(element => {
         element.addEventListener("click", image => {
             BigPicture({
@@ -89,7 +89,7 @@ function setListeners() {
         });
     });
 
-// videos // TODO: Fix timeout exception and scrubbing issues with chromium based browsers
+    // videos // TODO: Fix timeout exception and scrubbing issues with chromium based browsers
     document.querySelectorAll("[data-video]").forEach(element => {
         element.addEventListener("click", video => {
             BigPicture({
@@ -99,7 +99,7 @@ function setListeners() {
         });
     });
 
-//audio // TODO: Fix IOException and scrubbing issues with chromium based browsers
+    //audio // TODO: Fix IOException and scrubbing issues with chromium based browsers
     document.querySelectorAll("[data-audio]").forEach(element => {
         element.addEventListener("click", audio => {
             BigPicture({
@@ -109,22 +109,19 @@ function setListeners() {
         });
     });
 
-// normal files
+    // normal files
     document.querySelectorAll("[data-href]").forEach(element => {
         element.addEventListener("click", () => {
             window.location = element.getAttribute("data-href");
         })
     });
 
-// deletion button
+    // deletion button
     document.querySelectorAll(".delete").forEach(element => {
-        // TODO: remove eventListener which opens file
-        // -> IDEA: use functions instead of anonymous callbacks
-
         element.addEventListener("click", e => {
             e.stopPropagation();
             const request = new XMLHttpRequest();
-            const parent = e.target.parentElement.parentElement;
+            const parent = e.target.closest("tr");
             const fileName = parent.getAttribute("data-href") || parent.getAttribute("data-path");
             request.open("POST", `/delete/${path}/${fileName}`);
             request.send();

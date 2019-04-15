@@ -1,3 +1,7 @@
+* {
+    transition: all .2s linear;
+}
+
 table {
     width: 100%;
 }
@@ -37,4 +41,10 @@ table thead tr:hover {
     background-color: inherit;
     border: 0;
     z-index: 100;
+    cursor: pointer;
+}
+
+.delete:hover {
+    transform: scale(1.3);
+    color: red;
 }
