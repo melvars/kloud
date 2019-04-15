@@ -3,8 +3,8 @@ html, body {
     color: #424242;
     padding: 0;
     margin: 0;
-    min-width: 100vw !important;
-    min-height: 100vh !important;
+    min-width: 100vw;
+    min-height: 100vh;
 }
 
 button {
