@@ -92,7 +92,7 @@ class DatabaseController(dbFileLocation: String = "main.db") {
                 val usersId = UserData.insert {
                     it[username] = usernameString
                     it[password] = BCrypt.withDefaults().hashToString(12, passwordString.toCharArray())
-                    it[verification] = generateRandomString(64)
+                    it[verification] = generateRandomString()
                 }[UserData.id]
 
                 UserRoles.insert { roles ->
@@ -215,7 +215,7 @@ class DatabaseController(dbFileLocation: String = "main.db") {
                 FileLocation.insert {
                     it[path] = fileLocation
                     it[userId] = usersId
-                    it[accessId] = generateRandomString(64)
+                    it[accessId] = generateRandomString()
                 }
             } catch (err: org.jetbrains.exposed.exceptions.ExposedSQLException) {
                 log.warning("File already exists!")
@@ -316,7 +316,7 @@ class DatabaseController(dbFileLocation: String = "main.db") {
     /**
      * Generates a random string with [length] characters
      */
-    private fun generateRandomString(length: Int): String {
+    private fun generateRandomString(length: Int = 64): String {
         val allowedChars = "ABCDEFGHIJKLMNOPQRSTUVWXTZabcdefghiklmnopqrstuvwxyz0123456789"
         return (1..length)
             .map { allowedChars.random() }

@@ -19,6 +19,7 @@ import java.util.*
 import java.util.logging.*
 import kotlin.math.*
 
+
 const val fileHome = "files"
 val databaseController = DatabaseController()
 private val log = Logger.getLogger("App.kt")
@@ -145,15 +146,17 @@ fun crawlFiles(ctx: Context) {
                     val fileName = it.toString()
                         .drop(usersFileHome.length + (if (ctx.splats()[0].isNotEmpty()) ctx.splats()[0].length + 2 else 1))
                     val filePath = "$usersFileHome${it.toString().drop(usersFileHome.length)}"
+                    val file = File(filePath)
+                    val fileSize = if (file.isDirectory) getDirectorySize(file) else file.length()
                     files.add(
                         // TODO: Clean up file array responses
                         arrayOf(
-                            if (File(filePath).isDirectory) "$fileName/" else fileName,
-                            humanReadableBytes(File(filePath).length()), // TODO: Fix file size for directories
-                            SimpleDateFormat("MM/dd/yyyy HH:mm:ss").format(File(filePath).lastModified()).toString(),
-                            if (File(filePath).isDirectory) "true" else isHumanReadable(filePath).toString(),
-                            File(filePath).length().toString(), // unformatted file size
-                            File(filePath).lastModified().toString() // unformatted last modified date
+                            if (file.isDirectory) "$fileName/" else fileName,
+                            humanReadableBytes(fileSize),
+                            SimpleDateFormat("MM/dd/yyyy HH:mm:ss").format(file.lastModified()).toString(),
+                            if (file.isDirectory) "true" else isHumanReadable(file).toString(),
+                            fileSize.toString(), // unformatted file size
+                            file.lastModified().toString() // unformatted last modified date
                         )
                     )
                 }
@@ -165,7 +168,7 @@ fun crawlFiles(ctx: Context) {
                     )
                 )
             }
-            isHumanReadable("$usersFileHome/${ctx.splats()[0]}") ->
+            isHumanReadable(File("$usersFileHome/${ctx.splats()[0]}")) ->
                 ctx.render(
                     "fileview.rocker.html", model(
                         "content", Files.readAllLines(
@@ -184,6 +187,18 @@ fun crawlFiles(ctx: Context) {
 }
 
 /**
+ * Gets directory size recursively
+ */
+fun getDirectorySize(directory: File): Long {
+    var length: Long = 0
+    for (file in directory.listFiles()!!) {
+        length += if (file.isFile) file.length()
+        else getDirectorySize(file)
+    }
+    return length
+}
+
+/**
  * Saves multipart media data into requested directory
  */
 fun upload(ctx: Context) {
@@ -197,8 +212,7 @@ fun upload(ctx: Context) {
 /**
  * Checks whether the file is binary or human-readable (text)
  */
-private fun isHumanReadable(filePath: String): Boolean {
-    val file = File(filePath)
+private fun isHumanReadable(file: File): Boolean {
     val input = FileInputStream(file)
     var size = input.available()
     if (size > 1000) size = 1000
