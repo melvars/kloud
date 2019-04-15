@@ -33,8 +33,9 @@ drop.addEventListener('drop', e => {
         row.insertCell(0).innerHTML = file.name;
         row.insertCell(1).innerHTML = bytesToSize(file.size);
         row.insertCell(2).innerHTML = `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
+        row.insertCell(3).innerHTML = "<td><button class='delete'>&times;</button></td>";
 
-        //setListeners();
+        setListeners();
 
         formData.append("file", file);
         request.open("POST", "/upload/" + path);
@@ -52,64 +53,84 @@ drop.addEventListener('drop', e => {
 /**
  * Set up listeners
  */
-document.querySelectorAll("[data-path]").forEach(element => {
-    const images = ["jpg", "jpeg", "png", "gif", "bmp", "webp", "svg", "tiff"];
-    const videos = ["mp4", "m4v", "mov", "webm", "avi", "wmv", "mpg", "mpv", "mpeg"];
-    const audio = ["mp3", "m4a", "wav", "ogg"];
+function setListeners() {
+    document.querySelectorAll("[data-path]").forEach(element => {
+        const images = ["jpg", "jpeg", "png", "gif", "bmp", "webp", "svg", "tiff"];
+        const videos = ["mp4", "m4v", "mov", "webm", "avi", "wmv", "mpg", "mpv", "mpeg", "ogv"];
+        const audio = ["mp3", "m4a", "wav", "ogg"];
 
-    const filename = element.getAttribute("data-path");
-    const extension = /(?:\.([^.]+))?$/.exec(filename)[1].toLowerCase();
+        const filename = element.getAttribute("data-path");
+        const extension = /(?:\.([^.]+))?$/.exec(filename)[1].toLowerCase();
 
-    if (images.indexOf(extension) > -1) {
-        element.setAttribute("data-bp", filename);
-        element.setAttribute("data-image", "");
-    } else if (videos.indexOf(extension) > -1) {
-        element.setAttribute("data-src", filename);
-        element.setAttribute("data-video", "");
-    } else if (audio.indexOf(extension) > -1) {
-        element.setAttribute("data-src", filename);
-        element.setAttribute("data-audio", "");
-    }
+        if (images.indexOf(extension) > -1) {
+            element.setAttribute("data-bp", filename);
+            element.setAttribute("data-image", "");
+        } else if (videos.indexOf(extension) > -1) {
+            element.setAttribute("data-src", filename);
+            element.setAttribute("data-video", "");
+        } else if (audio.indexOf(extension) > -1) {
+            element.setAttribute("data-src", filename);
+            element.setAttribute("data-audio", "");
+        }
 
-    element.addEventListener("click", () => {
-        if (images.indexOf(extension) === -1 && videos.indexOf(extension) === -1 && audio.indexOf(extension) === -1)
-            window.location = filename; // download binary files
-    });
-});
-
-// images
-document.querySelectorAll("[data-image]").forEach(element => {
-    element.addEventListener("click", image => {
-        BigPicture({
-            el: image.currentTarget,
-            gallery: document.querySelectorAll("[data-image]")
-        })
-    });
-});
-
-// videos // TODO: Fix timeout exception and scrubbing issues with chromium based browsers
-document.querySelectorAll("[data-video]").forEach(element => {
-    element.addEventListener("click", video => {
-        BigPicture({
-            el: video.currentTarget,
-            vidSrc: video.currentTarget.getAttribute("data-src")
-        })
-    });
-});
-
-//audio // TODO: Fix IOException and scrubbing issues with chromium based browsers
-document.querySelectorAll("[data-audio]").forEach(element => {
-    element.addEventListener("click", audio => {
-        BigPicture({
-            el: audio.currentTarget,
-            audio: audio.currentTarget.getAttribute("data-src")
+        element.addEventListener("click", () => {
+            if (images.indexOf(extension) === -1 && videos.indexOf(extension) === -1 && audio.indexOf(extension) === -1)
+                window.location = filename; // download binary files
         });
     });
-});
+
+// images
+    document.querySelectorAll("[data-image]").forEach(element => {
+        element.addEventListener("click", image => {
+            BigPicture({
+                el: image.currentTarget,
+                gallery: document.querySelectorAll("[data-image]")
+            })
+        });
+    });
+
+// videos // TODO: Fix timeout exception and scrubbing issues with chromium based browsers
+    document.querySelectorAll("[data-video]").forEach(element => {
+        element.addEventListener("click", video => {
+            BigPicture({
+                el: video.currentTarget,
+                vidSrc: video.currentTarget.getAttribute("data-src")
+            })
+        });
+    });
+
+//audio // TODO: Fix IOException and scrubbing issues with chromium based browsers
+    document.querySelectorAll("[data-audio]").forEach(element => {
+        element.addEventListener("click", audio => {
+            BigPicture({
+                el: audio.currentTarget,
+                audio: audio.currentTarget.getAttribute("data-src")
+            });
+        });
+    });
 
 // normal files
-document.querySelectorAll("[data-href]").forEach(element => {
-    element.addEventListener("click", () => {
-        window.location = element.getAttribute("data-href");
-    })
-});
+    document.querySelectorAll("[data-href]").forEach(element => {
+        element.addEventListener("click", () => {
+            window.location = element.getAttribute("data-href");
+        })
+    });
+
+// deletion button
+    document.querySelectorAll(".delete").forEach(element => {
+        // TODO: remove eventListener which opens file
+        // -> IDEA: use functions instead of anonymous callbacks
+
+        element.addEventListener("click", e => {
+            e.stopPropagation();
+            const request = new XMLHttpRequest();
+            const parent = e.target.parentElement.parentElement;
+            const fileName = parent.getAttribute("data-href") || parent.getAttribute("data-path");
+            request.open("POST", `/delete/${path}/${fileName}`);
+            request.send();
+            parent.remove();
+        })
+    });
+}
+
+setListeners();

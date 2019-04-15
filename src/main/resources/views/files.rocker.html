@@ -20,12 +20,14 @@
             <th>Name</th>
             <th>Size</th>
             <th>Last modified</th>
+            <th>Delete</th>
         </tr>
         </thead>
 
         <tbody>
         <tr data-href="../">
             <td>../</td>
+            <td></td>
             <td></td>
             <td></td>
         </tr>
@@ -36,12 +38,18 @@
             <td>@fileArray[0]</td>
             <td>@fileArray[1]</td>
             <td>@fileArray[2]</td>
+            <td>
+                <button class="delete">&times;</button>
+            </td>
         </tr>
         } else {
         <tr data-path="@fileArray[0]">
             <td>@fileArray[0]</td>
             <td>@fileArray[1]</td>
             <td>@fileArray[2]</td>
+            <td>
+                <button class="delete">&times;</button>
+            </td>
         </tr>
         }
         }

@@ -223,6 +223,19 @@ class DatabaseController(dbFileLocation: String = "main.db") {
     }
 
     /**
+     * Removes the file from the database
+     */
+    fun deleteFile(fileLocation: String, userId: Int) {
+        transaction {
+            try {
+                FileLocation.deleteWhere { FileLocation.location eq fileLocation and FileLocation. }
+            } catch (_: org.jetbrains.exposed.exceptions.ExposedSQLException) {
+
+            }
+        }
+    }
+
+    /**
      * Checks whether the site has been set up
      */
     fun isSetup(): Boolean {

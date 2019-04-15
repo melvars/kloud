@@ -31,3 +31,10 @@ table thead tr:hover {
     min-height: calc(100vh - 16px);
     z-index: -1;
 }
+
+.delete {
+    font-size: 20px;
+    background-color: inherit;
+    border: 0;
+    z-index: 100;
+}

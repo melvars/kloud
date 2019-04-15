@@ -101,6 +101,11 @@ fun main() {
          * TODO: Fix possible security issue with "../"
          */
         post("/upload/*", ::upload, roles(Roles.USER))
+
+        /**
+         * Deletes file
+         */
+        post("/delete/*", ::delete, roles(Roles.USER))
     }
 }
 
@@ -296,6 +301,16 @@ fun setup(ctx: Context) {
         } catch (_: Exception) {
             ctx.status(400).render("setup.rocker.html", model("message", "An error occurred!"))
         }
+    }
+}
+
+/**
+ * Deletes the requested file
+ */
+fun delete(ctx: Context) {
+    if (getVerifiedUserId(ctx) > 0) {
+        File("$fileHome/${getVerifiedUserId(ctx)}/${ctx.splats()[0]}").delete()
+        // TODO: delete from database
     }
 }
 
