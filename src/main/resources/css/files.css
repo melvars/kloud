@@ -36,20 +36,20 @@ tr td, tr th {
     text-overflow: ellipsis;
 }
 
-tr td:nth-child(1) {
-    max-width: 40%;
+colgroup col:nth-child(1) {
+    width: 40%;
 }
 
-tr td:nth-child(2) {
-    max-width: 20%;
+colgroup col:nth-child(2) {
+    width: 15%;
 }
 
-tr td:nth-child(3) {
-    max-width: 30%;
+colgroup col:nth-child(3) {
+    width: 30%;
 }
 
-tr td:nth-child(4) {
-    max-width: 10%;
+colgroup col:nth-child(4) {
+    width: 15%;
 }
 
 .drop {
