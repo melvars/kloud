@@ -36,19 +36,19 @@ tr td, tr th {
     text-overflow: ellipsis;
 }
 
-tr td:nth-child(0) {
+tr td:nth-child(1) {
     max-width: 40%;
 }
 
-tr td:nth-child(1) {
+tr td:nth-child(2) {
     max-width: 20%;
 }
 
-tr td:nth-child(2) {
+tr td:nth-child(3) {
     max-width: 30%;
 }
 
-tr td:nth-child(3) {
+tr td:nth-child(4) {
     max-width: 10%;
 }
 
