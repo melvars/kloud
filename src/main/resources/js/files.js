@@ -131,3 +131,31 @@ function setListeners() {
 }
 
 setListeners();
+
+/**
+ * Set up sort features
+ */
+function sortTable(table, col, ascending) {
+    const tb = table.tBodies[0];
+    let tr = Array.prototype.slice.call(tb.rows, 0);
+
+    ascending = -((+ascending) || -1);
+    tr = tr.sort((a, b) => {
+        if (a.cells[col].getAttribute("data-size") !== null)
+            return ascending * (Number(a.cells[col].getAttribute("data-size")) > Number(b.cells[col].getAttribute("data-size")) ? 1 : -1);
+        else if (a.cells[col].getAttribute("data-date") !== null)
+            return ascending * (Number(a.cells[col].getAttribute("data-date")) > Number(b.cells[col].getAttribute("data-date")) ? 1 : -1);
+        else
+            return ascending * (a.cells[col].textContent.trim().localeCompare(b.cells[col].textContent.trim()))
+    });
+
+    for (let i = 0; i < tr.length; ++i) tb.appendChild(tr[i]);
+}
+
+document.querySelectorAll("thead tr > th").forEach((header, index) => {
+    header.addEventListener("click", () => {
+        const ascending = header.getAttribute("data-asc");
+        sortTable(document.querySelector("table"), index, (ascending === "true"));
+        header.setAttribute("data-asc", (ascending === "false").toString())
+    })
+});

@@ -146,15 +146,18 @@ fun crawlFiles(ctx: Context) {
                         .drop(usersFileHome.length + (if (ctx.splats()[0].isNotEmpty()) ctx.splats()[0].length + 2 else 1))
                     val filePath = "$usersFileHome${it.toString().drop(usersFileHome.length)}"
                     files.add(
+                        // TODO: Clean up file array responses
                         arrayOf(
                             if (File(filePath).isDirectory) "$fileName/" else fileName,
                             humanReadableBytes(File(filePath).length()), // TODO: Fix file size for directories
                             SimpleDateFormat("MM/dd/yyyy HH:mm:ss").format(File(filePath).lastModified()).toString(),
-                            if (File(filePath).isDirectory) "true" else isHumanReadable(filePath).toString()
+                            if (File(filePath).isDirectory) "true" else isHumanReadable(filePath).toString(),
+                            File(filePath).length().toString(), // unformatted file size
+                            File(filePath).lastModified().toString() // unformatted last modified date
                         )
                     )
                 }
-                //files.sortWith(String.CASE_INSENSITIVE_ORDER)
+                //files.sortWith(String.CASE_INSENSITIVE_ORDER) // TODO: Reimplement file array sorting in backend
                 ctx.render(
                     "files.rocker.html", model(
                         "files", files,

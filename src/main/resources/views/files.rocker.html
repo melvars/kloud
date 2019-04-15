@@ -17,41 +17,33 @@
     <table id="table">
         <thead>
         <tr>
-            <th>Name</th>
-            <th>Size</th>
-            <th>Last modified</th>
-            <th>Delete</th>
+            <th data-asc="true">Name</th>
+            <th data-asc="true">Size</th>
+            <th data-asc="true">Last modified</th>
+            <th data-asc="true">Delete</th>
         </tr>
-        </thead>
-
-        <tbody>
         <tr data-href="../">
             <td>../</td>
             <td></td>
             <td></td>
             <td></td>
         </tr>
+        </thead>
 
+        <tbody>
         @for (String[] fileArray : files) {
         @if (fileArray[3] == "true") {
         <tr data-href="@fileArray[0]">
-            <td>@fileArray[0]</td>
-            <td>@fileArray[1]</td>
-            <td>@fileArray[2]</td>
-            <td>
-                <button class="delete"><i class="icon ion-md-trash"></i></button>
-            </td>
-        </tr>
-        } else {
+            } else {
         <tr data-path="@fileArray[0]">
+            }
             <td>@fileArray[0]</td>
-            <td>@fileArray[1]</td>
-            <td>@fileArray[2]</td>
+            <td data-size="@fileArray[4]">@fileArray[1]</td>
+            <td data-date="@fileArray[5]">@fileArray[2]</td>
             <td>
                 <button class="delete"><i class="icon ion-md-trash"></i></button>
             </td>
         </tr>
-        }
         }
         </tbody>
     </table>
