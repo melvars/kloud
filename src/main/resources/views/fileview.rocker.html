@@ -2,12 +2,13 @@
 
 @css => {
 <link href="/css/fileview.css" rel="stylesheet">
+<link href="/css/markdown.css" rel="stylesheet">
 }
 
 @js => {
 <script>const extension = "@extension";</script>
 <script src="/js/prettify.js"></script>
-<script src="/js/marked.js"></script>
+<script src="/js/markdown.js"></script>
 <script src="/js/fileview.js"></script>
 }
 
@@ -18,5 +19,6 @@
     <label for="dark">Dark mode</label><input id="dark" type="checkbox">
 </span>
 <pre class="prettyprint" id="content"><code class="lang-@extension">@content</code></pre>
+<textarea class="modify" id="modify"></textarea>
 <iframe class="preview" id="preview"></iframe>
 }

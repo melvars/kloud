@@ -1,4 +1,5 @@
 const preview = document.getElementById("preview");
+const modify = document.getElementById("modify");
 const content = document.getElementById("content");
 const html = document.getElementsByTagName("html")[0];
 const body = document.body;
@@ -11,12 +12,8 @@ const settings = document.getElementById("settings");
 
 const originalContent = content.innerText;
 
-if (extension === "md" || extension === "html") {
-    if (extension === "md")
-        preview.src = "data:text/html;charset=utf-8," + encodeURI(marked(originalContent));
-    else if (extension === "html") {
-        preview.src = "data:text/html;charset=utf-8," + encodeURI(originalContent);
-    }
+if (extension === "html") {
+    preview.src = "data:text/html;charset=utf-8," + encodeURI(originalContent);
 
     preview.style.display = "block";
     raw.style.display = "block";
@@ -39,6 +36,12 @@ if (extension === "md" || extension === "html") {
             settings.style.display = "none";
         }
     });
+} else if (extension === "md") {
+    const simplemde = new SimpleMDE({element: modify, hideIcons: ["fullscreen", "preview", "guide"]});
+    simplemde.value(originalContent);
+    content.style.display = "none";
+    html.style.overflow = "visible";
+    body.style.overflow = "visible";
 } else {
     settings.style.display = "block";
 }

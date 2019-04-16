@@ -218,6 +218,13 @@ fun upload(ctx: Context) {
         databaseController.addFile(path, getVerifiedUserId(ctx))
     }
 }
+/*
+fun indexAllFiles(ctx: Context) {
+    Files.list(Paths.get("$fileHome/${getVerifiedUserId(ctx)}").forEach {
+        // TODO: Add file indexing function
+    }
+}
+*/
 
 /**
  * Checks whether the file is binary or human-readable (text)

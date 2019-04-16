@@ -3,14 +3,14 @@ html, body {
     overflow: hidden;
 }
 
-.preview, .switch, .settings {
+.preview, .modify, .switch, .settings {
     display: none;
 }
 
 .prettyprint, .preview {
     position: absolute;
     height: 100%;
-    width: 100%;
+    max-width: 100vmin;
     border: none !important;
     overflow: visible;
 }
