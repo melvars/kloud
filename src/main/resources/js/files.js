@@ -141,14 +141,14 @@ function setListeners() {
             request.open("POST", `/share/${path}/${fileName}`);
             request.onload = () => {
                 if (request.readyState === 4) {
-                    if (request.status === 200) {
+                    if (request.status === 200) {  // TODO: fix clipboard in Firefox
                         const input = document.createElement('input');
                         input.setAttribute('value', request.responseText);
                         document.body.appendChild(input);
                         input.select();
                         document.execCommand('copy');
                         document.body.removeChild(input);
-                        alert("Copied url to clipboard!")
+                        alert(`Copied url to clipboard!\n${request.responseText}`);
                     } else {
                         alert("Something went wrong.");
                     }
