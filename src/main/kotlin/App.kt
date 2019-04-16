@@ -127,14 +127,6 @@ fun roleManager(handler: Handler, ctx: Context, permittedRoles: Set<Role>) {
     }
 }
 
-/*
-fun indexAllFiles(ctx: Context) {
-    Files.list(Paths.get("$fileHome/${getVerifiedUserId(ctx)}").forEach {
-        // TODO: Add file indexing function
-    }
-}
-*/
-
 /**
  * Declares the roles in which a user can be in
  */

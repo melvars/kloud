@@ -57,7 +57,10 @@ class FileController {
                             "extension", File("$usersFileHome/${ctx.splats()[0]}").extension
                         )
                     )
-                else -> ctx.result(FileInputStream(File("$usersFileHome/${ctx.splats()[0]}")))
+                else -> {
+                    ctx.contentType(Files.probeContentType(Paths.get("$usersFileHome/${ctx.splats()[0]}")))
+                    ctx.result(FileInputStream(File("$usersFileHome/${ctx.splats()[0]}")))
+                }
             }
         } catch (_: Exception) {
             throw NotFoundResponse("Error: File or directory does not exist.")
@@ -114,6 +117,14 @@ class FileController {
         }
     }
 
+    /*
+    fun indexAll(ctx: Context) {
+        Files.list(Paths.get("$fileHome/${getVerifiedUserId(ctx)}").forEach {
+            // TODO: Add file indexing function
+        }
+    }
+    */
+
     /**
      * Deletes the requested file
      */
@@ -156,10 +167,12 @@ class FileController {
                         "extension", File(sharedFileLocation).extension
                     )
                 )
-            } else ctx.result(FileInputStream(File(sharedFileLocation)))  // TODO: other file types
+            } else {
+                ctx.contentType(Files.probeContentType(Paths.get(sharedFileLocation)))
+                ctx.result(FileInputStream(File(sharedFileLocation)))
+            }
         } else {
             log.info("Unknown file!")
         }
     }
-
 }
