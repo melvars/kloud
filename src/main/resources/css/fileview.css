@@ -1,6 +1,6 @@
 html, body {
     max-width: 100vw;
-    overflow: hidden;
+    overflow: visible;
 }
 
 .preview, .modify, .switch, .settings {

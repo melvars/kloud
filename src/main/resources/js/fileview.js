@@ -44,6 +44,8 @@ if (extension === "html") {
     body.style.overflow = "visible";
 } else {
     settings.style.display = "block";
+    html.style.overflow = "visible";
+    body.style.overflow = "visible";
 }
 
 code.addEventListener("change", () => {
