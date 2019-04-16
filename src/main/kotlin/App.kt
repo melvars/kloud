@@ -107,6 +107,16 @@ fun main() {
          * Deletes file
          */
         post("/delete/*", ::delete, roles(Roles.USER))
+
+        /**
+         * Shares file
+         */
+        post("/share/*", ::shareFile, roles(Roles.USER))
+
+        /**
+         * Shows the shared file
+         */
+        get("/shared", ::renderSharedFile, roles(Roles.GUEST))
     }
 }
 
@@ -330,6 +340,42 @@ fun delete(ctx: Context) {
         val path = ctx.splats()[0]
         File("$fileHome/$userId/$path").delete()
         databaseController.deleteFile(path, userId)
+    }
+}
+
+/**
+ * Shares the requested file via the accessId
+ */
+fun shareFile(ctx: Context) {
+    val userId = getVerifiedUserId(ctx)
+    if (userId > 0) {
+        val accessId = databaseController.getAccessId(ctx.splats()[0], userId)
+        ctx.result("${ctx.host()}/shared?id=$accessId")
+    }
+}
+
+/**
+ * Renders the shared file
+ */
+fun renderSharedFile(ctx: Context) {
+    val accessId = ctx.queryParam("id").toString()
+    val sharedFileData = databaseController.getSharedFile(accessId)
+    if (sharedFileData.first > 0 && sharedFileData.second.isNotEmpty()) {
+        val sharedFileLocation = "$fileHome/${sharedFileData.first}/${sharedFileData.second}"
+        if (isHumanReadable(File(sharedFileLocation))) {
+            ctx.render(
+                "fileview.rocker.html", model(
+                    "content", Files.readAllLines(
+                        Paths.get(sharedFileLocation),
+                        Charsets.UTF_8
+                    ).joinToString(separator = "\n"),
+                    "filename", File(sharedFileLocation).name,
+                    "extension", File(sharedFileLocation).extension
+                )
+            )
+        } else ctx.result(FileInputStream(File(sharedFileLocation)))
+    } else {
+        log.info("Unknown file!")
     }
 }
 

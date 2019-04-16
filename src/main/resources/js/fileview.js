@@ -1,6 +1,7 @@
 const preview = document.getElementById("preview");
 const content = document.getElementById("content");
-const body = document.getElementsByTagName("body")[0];
+const html = document.getElementsByTagName("html")[0];
+const body = document.body;
 
 // buttons
 const raw = document.getElementById("raw");
@@ -23,12 +24,14 @@ if (extension === "md" || extension === "html") {
 
     raw.addEventListener("click", () => {
         if (preview.style.display === "block") {
+            html.style.overflow = "visible";
             body.style.overflow = "visible";
             raw.innerText = "Show preview";
             preview.style.display = "none";
             content.style.display = "block";
             settings.style.display = "block";
         } else {
+            html.style.overflow = "hidden";
             body.style.overflow = "hidden";
             raw.innerText = "Show raw";
             preview.style.display = "block";

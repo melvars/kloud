@@ -45,11 +45,15 @@ colgroup col:nth-child(2) {
 }
 
 colgroup col:nth-child(3) {
-    width: 30%;
+    width: 25%;
 }
 
 colgroup col:nth-child(4) {
-    width: 15%;
+    width: 10%;
+}
+
+colgroup col:nth-child(5) {
+    width: 10%;
 }
 
 .drop {
@@ -69,4 +73,17 @@ colgroup col:nth-child(4) {
 .delete:hover {
     transform: scale(1.3);
     color: red;
+}
+
+.share {
+    font-size: 20px;
+    background-color: inherit;
+    border: 0;
+    z-index: 100;
+    cursor: pointer;
+}
+
+.share:hover {
+    transform: scale(1.3);
+    color: dodgerblue;
 }

@@ -35,10 +35,12 @@
             <th data-asc="true">Name</th>
             <th data-asc="true">Size</th>
             <th data-asc="true">Last modified</th>
+            <th data-asc="true">Share</th>
             <th data-asc="true">Delete</th>
         </tr>
         <tr data-href="../">
             <td>../</td>
+            <td></td>
             <td></td>
             <td></td>
             <td></td>
@@ -55,6 +57,9 @@
             <td>@fileArray[0]</td>
             <td data-size="@fileArray[4]">@fileArray[1]</td>
             <td data-date="@fileArray[5]">@fileArray[2]</td>
+            <td>
+                <button class="share"><i class="icon ion-md-share"></i></button>
+            </td>
             <td>
                 <button class="delete"><i class="icon ion-md-trash"></i></button>
             </td>

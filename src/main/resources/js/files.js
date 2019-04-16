@@ -33,7 +33,8 @@ drop.addEventListener('drop', e => {
         row.insertCell(0).innerHTML = file.name;
         row.insertCell(1).innerHTML = bytesToSize(file.size);
         row.insertCell(2).innerHTML = `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
-        row.insertCell(3).innerHTML = "<td><button class='delete'><i class='icon ion-md-trash'></i></button></td>";
+        row.insertCell(3).innerHTML = "<td><button class='share'><i class='icon ion-md-share'></i></button></td>";
+        row.insertCell(4).innerHTML = "<td><button class='delete'><i class='icon ion-md-trash'></i></button></td>";
 
         setListeners();
 
@@ -126,6 +127,34 @@ function setListeners() {
             request.open("POST", `/delete/${path}/${fileName}`);
             request.send();
             parent.remove();
+        })
+    });
+
+    // share button
+    document.querySelectorAll(".share").forEach(element => {
+        element.addEventListener("click", e => {
+            e.stopPropagation();
+            const request = new XMLHttpRequest();
+            const parent = e.target.closest("tr");
+            const fileName = parent.getAttribute("data-href") || parent.getAttribute("data-path");
+
+            request.open("POST", `/share/${path}/${fileName}`);
+            request.onload = () => {
+                if (request.readyState === 4) {
+                    if (request.status === 200) {
+                        const input = document.createElement('input');
+                        input.setAttribute('value', request.responseText);
+                        document.body.appendChild(input);
+                        input.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(input);
+                        alert("Copied url to clipboard!")
+                    } else {
+                        alert("Something went wrong.");
+                    }
+                }
+            };
+            request.send();
         })
     });
 }

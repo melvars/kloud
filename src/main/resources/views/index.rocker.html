@@ -4,10 +4,16 @@
 <h1>Welcome to Kloud <i>@username</i>!</h1>
 
 @if(username.length() > 0) {
-<button><a href="/logout/">Logout</a></button>
+<a href="/logout">
+    <button>Logout</button>
+</a>
 } else {
-<button><a href="/login/">Login</a></button>
+<a href="/login">
+    <button>Login</button>
+</a>
 }
 
-<button><a href="/files/">Files</a></button>
+<a href="/files/">
+    <button>Files</button>
+</a>
 }

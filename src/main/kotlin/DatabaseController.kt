@@ -19,6 +19,7 @@ class DatabaseController(dbFileLocation: String = "main.db") {
         val path = text("path").uniqueIndex()
         val userId = integer("userId").references(UserData.id)
         val accessId = varchar("accessId", 64).uniqueIndex() // TODO: Add file sharing
+        val isShared = bool("isShared").default(false)
     }
 
     /**
@@ -232,6 +233,39 @@ class DatabaseController(dbFileLocation: String = "main.db") {
                 FileLocation.deleteWhere { (FileLocation.path eq fileLocation) and (FileLocation.userId eq userId) }
             } catch (_: org.jetbrains.exposed.exceptions.ExposedSQLException) {
                 log.warning("File does not exist!")
+            }
+        }
+    }
+
+    /**
+     * Returns the accessId of the given File
+     */
+    fun getAccessId(fileLocation: String, userId: Int): String {
+        return transaction {
+            try {
+                FileLocation.update({ (FileLocation.userId eq userId) and (FileLocation.path eq fileLocation) }) {
+                    it[isShared] = true
+                }
+                FileLocation.select { (FileLocation.path eq fileLocation) and (FileLocation.userId eq userId) }.map { it[FileLocation.accessId] }[0]
+            } catch (_: Exception) {
+                ""
+            }
+        }
+    }
+
+    /**
+     * Gets the shared file via [accessId]
+     */
+    fun getSharedFile(accessId: String): Pair<Int, String> {
+        return transaction {
+            try {
+                if (FileLocation.select { FileLocation.accessId eq accessId }.map { it[FileLocation.isShared] }[0])
+                    FileLocation.select { FileLocation.accessId eq accessId }.map { it[FileLocation.userId] to it[FileLocation.path] }[0]
+                else
+                    Pair(-1, "")
+            } catch (_: org.jetbrains.exposed.exceptions.ExposedSQLException) {
+                log.warning("File does not exist!")
+                Pair(-1, "")
             }
         }
     }
