@@ -37,7 +37,11 @@ if (extension === "html") {
         }
     });
 } else if (extension === "md") {
-    const simplemde = new SimpleMDE({element: modify, hideIcons: ["fullscreen", "preview", "guide"]});
+    const simplemde = new SimpleMDE({
+        element: modify,
+        hideIcons: ["fullscreen", "preview", "guide"],
+        autoDownloadFontAwesome: false
+    });
     simplemde.value(originalContent);
     content.style.display = "none";
     html.style.overflow = "visible";

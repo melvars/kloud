@@ -14,3 +14,19 @@ html, body {
     border: none !important;
     overflow: visible;
 }
+
+.icon, .italic, .bold, .header {
+    font-size: 20px;
+}
+
+.italic:after {
+    content: "I"
+}
+
+.bold:after {
+    content: "B"
+}
+
+.header:after {
+    content: "H"
+}
