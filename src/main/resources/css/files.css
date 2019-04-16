@@ -58,7 +58,7 @@ colgroup col:nth-child(5) {
 
 .drop {
     padding: 8px;
-    min-height: calc(100vmin - 16px);
+    min-height: calc(100vh - 16px);
     z-index: -1;
 }
 

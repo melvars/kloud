@@ -111,8 +111,11 @@ class FileController {
      */
     fun upload(ctx: Context) {
         ctx.uploadedFiles("file").forEach { (_, content, name, _) ->
-            val path = "${ctx.splats()[0]}/$name"
-            FileUtil.streamToFile(content, "$fileHome/${userHandler.getVerifiedUserId(ctx)}/$path")
+            val path = "${ctx.splats()[0]}/$name" // es gibt kein [content] bei nem dir
+            FileUtil.streamToFile(
+                content,
+                "$fileHome/${userHandler.getVerifiedUserId(ctx)}/$path"
+            )  // ich würde alle files aus der directory einzeln uploaden <- deshalb das (foreach)
             databaseController.addFile(path, userHandler.getVerifiedUserId(ctx))
         }
     }

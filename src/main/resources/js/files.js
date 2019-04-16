@@ -15,7 +15,6 @@ drop.addEventListener('dragleave', () =>
 );
 
 drop.addEventListener('drop', e => {
-    // TODO: Fix directory uploading
     e.stopPropagation();
     e.preventDefault();
     drop.style.background = "white";
@@ -38,9 +37,16 @@ drop.addEventListener('drop', e => {
 
         setListeners();
 
-        formData.append("file", file);
-        request.open("POST", "/upload/" + path);
-        request.send(formData);
+        const reader = new FileReader();
+        reader.onload = () => {
+            formData.append("file", file);
+            request.open("POST", "/upload/" + path);
+            request.send(formData);
+        };
+        reader.onerror = () => {
+            // TODO: Add uploading of directories
+        };
+        reader.readAsText(file)
     }
 
     function bytesToSize(bytes) {

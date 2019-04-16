@@ -18,7 +18,7 @@ class DatabaseController(dbFileLocation: String = "main.db") {
         val id = integer("id").autoIncrement().primaryKey()
         val path = text("path").uniqueIndex()
         val userId = integer("userId").references(UserData.id)
-        val accessId = varchar("accessId", 64).uniqueIndex() // TODO: Add file sharing
+        val accessId = varchar("accessId", 64).uniqueIndex()
         val isShared = bool("isShared").default(false)
     }
 
