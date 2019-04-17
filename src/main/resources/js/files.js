@@ -48,9 +48,12 @@ drop.addEventListener('drop', e => {
                 });
             } else {
                 subItem.file(subFile => {
-                    // TODO: Add support for nested directory upload with more than 1 layer
+                    // TODO: Add support for nested directory upload with more than 1 layer - via webkitRelativePath on firefox?
                     formData.append("file", subFile);
-                    request.open("POST", `/upload/${path}/${file.name}`);
+                    console.log(subFile);
+                    console.log(file);
+                    if (subFile.webkitRelativePath === "") request.open("POST", `/upload/${path}/${file.name}`);
+                    else request.open("POST", `/upload/${path}`);
                     request.send(formData);
                 })
             }
