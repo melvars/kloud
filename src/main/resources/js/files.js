@@ -2,7 +2,6 @@
  * Drag and drop
  */
 const drop = document.getElementById("drop");
-
 drop.addEventListener('dragover', e => {
     e.stopPropagation();
     e.preventDefault();
@@ -18,11 +17,13 @@ drop.addEventListener('drop', e => {
     e.stopPropagation();
     e.preventDefault();
     drop.style.background = "white";
-    const files = e.dataTransfer.files;
+    const items = e.dataTransfer.items;
 
-    for (const file of files) {
+    for (let i = 0; i < items.length; i++) {
         const request = new XMLHttpRequest();
         const formData = new FormData();
+        const item = items[i].webkitGetAsEntry();
+        const file = items[i].getAsFile();
 
         // TODO: Consider using current date due to updated lastModified state at upload
         const date = new Date(file.lastModified);
@@ -37,16 +38,31 @@ drop.addEventListener('drop', e => {
 
         setListeners();
 
-        const reader = new FileReader();
-        reader.onload = () => {
+        const iterateFiles = subItem => {
+            if (subItem.isDirectory) {
+                let directoryReader = subItem.createReader();
+                directoryReader.readEntries(entries => {
+                    entries.forEach(entry => {
+                        iterateFiles(entry);
+                    });
+                });
+            } else {
+                subItem.file(subFile => {
+                    // TODO: Add support for nested directory upload with more than 1 layer
+                    formData.append("file", subFile);
+                    request.open("POST", `/upload/${path}/${file.name}`);
+                    request.send(formData);
+                })
+            }
+        };
+
+        if (item.isDirectory) {
+            iterateFiles(item);
+        } else {
             formData.append("file", file);
-            request.open("POST", "/upload/" + path);
+            request.open("POST", `/upload/${path}`);
             request.send(formData);
-        };
-        reader.onerror = () => {
-            // TODO: Add uploading of directories
-        };
-        reader.readAsText(file)
+        }
     }
 
     function bytesToSize(bytes) {
@@ -55,7 +71,7 @@ drop.addEventListener('drop', e => {
         const i = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)));
         return Math.round(bytes / Math.pow(1024, i), 2) + ' ' + sizes[i];
     }
-});
+}, false);
 
 /**
  * Set up listeners
