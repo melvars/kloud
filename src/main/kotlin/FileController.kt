@@ -33,6 +33,7 @@ class FileController {
                                 humanReadableBytes(fileSize),
                                 SimpleDateFormat("MM/dd/yyyy HH:mm:ss").format(file.lastModified()).toString(),
                                 if (file.isDirectory) "true" else isHumanReadable(file).toString(),
+                                file.isDirectory.toString(),
                                 fileSize.toString(), // unformatted file size
                                 file.lastModified().toString() // unformatted last modified date
                             )

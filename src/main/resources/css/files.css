@@ -37,22 +37,26 @@ tr td, tr th {
 }
 
 colgroup col:nth-child(1) {
-    width: 40%;
+    width: 5%;
 }
 
 colgroup col:nth-child(2) {
-    width: 15%;
+    width: 35%;
 }
 
 colgroup col:nth-child(3) {
-    width: 25%;
+    width: 15%;
 }
 
 colgroup col:nth-child(4) {
-    width: 10%;
+    width: 25%;
 }
 
 colgroup col:nth-child(5) {
+    width: 10%;
+}
+
+colgroup col:nth-child(6) {
     width: 10%;
 }
 

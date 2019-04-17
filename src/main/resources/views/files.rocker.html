@@ -28,10 +28,12 @@
             <col/>
             <col/>
             <col/>
+            <col/>
         </colgroup>
 
         <thead>
         <tr>
+            <th data-asc="true"></th>
             <th data-asc="true">Name</th>
             <th data-asc="true">Size</th>
             <th data-asc="true">Last modified</th>
@@ -39,6 +41,7 @@
             <th data-asc="true">Delete</th>
         </tr>
         <tr data-href="../">
+            <td></td>
             <td>../</td>
             <td></td>
             <td></td>
@@ -54,9 +57,19 @@
             } else {
         <tr data-path="@fileArray[0]">
             }
+
+            <!-- TODO: Add more icons (more specific file types) -->
+            @if (fileArray[4] == "true") {
+            <td><i class="icon ion-md-folder"></i></td>
+            } else if (fileArray[3] == "false") {
+            <td><i class="icon ion-md-code"></i></td>
+            } else {
+            <td><i class="icon ion-md-document"></i></td>
+            }
+
             <td>@fileArray[0]</td>
-            <td data-size="@fileArray[4]">@fileArray[1]</td>
-            <td data-date="@fileArray[5]">@fileArray[2]</td>
+            <td data-size="@fileArray[5]">@fileArray[1]</td>
+            <td data-date="@fileArray[6]">@fileArray[2]</td>
             <td>
                 <button class="share"><i class="icon ion-md-share"></i></button>
             </td>
