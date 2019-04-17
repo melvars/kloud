@@ -24,7 +24,7 @@ fun main() {
         .start(7000)
 
     // Set up templating
-    RockerRuntime.getInstance().isReloading = true
+    RockerRuntime.getInstance().isReloading = false
     JavalinRenderer.register(
         FileRenderer { filepath, model -> Rocker.template(filepath).bind(model).render().toString() }, ".rocker.html"
     )
