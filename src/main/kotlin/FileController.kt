@@ -110,7 +110,7 @@ class FileController {
      * Saves multipart media data into requested directory
      */
     fun upload(ctx: Context) {
-        ctx.uploadedFiles("file").forEach { (contentType, content, name, extension) ->
+        ctx.uploadedFiles("file").forEach { (_, content, name, _) ->
             val path = "${ctx.splats()[0]}/$name"
             FileUtil.streamToFile(
                 content,
@@ -131,11 +131,11 @@ class FileController {
     /**
      * Deletes the requested file
      */
-    fun delete(ctx: Context) {
+    fun delete(ctx: Context) { // TODO: Fix deleting of directories
         val userId = userHandler.getVerifiedUserId(ctx)
         if (userId > 0) {
             val path = ctx.splats()[0]
-            File("$fileHome/$userId/$path").delete()
+            File("$fileHome/$userId/$path").delete()  // File.deleteRecursively() kind of "crashes" server but deletes folder :'(
             databaseController.deleteFile(path, userId)
         }
     }
@@ -143,10 +143,11 @@ class FileController {
     /**
      * Shares the requested file via the accessId
      */
-    fun share(ctx: Context) {
+    fun share(ctx: Context) { // TODO: Add support for directory sharing
         val userId = userHandler.getVerifiedUserId(ctx)
         if (userId > 0) {
-            val accessId = databaseController.getAccessId(ctx.splats()[0], userId)
+            val path = if (ctx.splats()[0].startsWith("/")) ctx.splats()[0] else "/${ctx.splats()[0]}"
+            val accessId = databaseController.getAccessId(path, userId)
             ctx.result("${ctx.host()}/shared?id=$accessId")
         }
     }
