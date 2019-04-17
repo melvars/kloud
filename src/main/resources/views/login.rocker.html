@@ -6,24 +6,32 @@
 }
 
 @layout.template("Login", RockerContent.NONE, js) -> {
-<form action="/login" id="login-form" method="post">
-    <div>
-        <label for="username">Username:</label>
-        <input id="username" name="username" type="text"/>
-    </div>
-    <div>
-        <label for="password">Password:</label>
-        <input id="password" name="password" type="password"/>
-    </div>
+<div class="flex">
+    <h1>Login</h1>
 
-    <button type="submit">Login</button>
+    <form action="/login" method="post">
+        <div>
+            <label for="username">Username:</label>
+            <input autocomplete="off" autofocus id="username" name="username" required type="text"/>
+        </div>
+        <div>
+            <label for="password">Password:</label>
+            <input id="password" name="password" required type="password"/>
+        </div>
 
-    @if(message.length() > 0) {
-    <small>@message</small>
-    }
+        <div>
+            @if(message.length() > 0) {
+            <small>@message</small>
+            }
 
-    @if(counter > 0) {
-    <small id="tryAgain">Please try again in <span id="counter">@counter</span> seconds.</small>
-    }
-</form>
+            @if(counter > 0) {
+            <small id="tryAgain">Please try again in <span id="counter">@counter</span> seconds.</small>
+            }
+        </div>
+
+        <div>
+            <button type="submit">Login</button>
+        </div>
+    </form>
+</div>
 }

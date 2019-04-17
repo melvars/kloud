@@ -38,6 +38,7 @@ drop.addEventListener('drop', e => {
 
         setListeners();
 
+        // TODO: Add empty directory upload support
         const iterateFiles = subItem => {
             if (subItem.isDirectory) {
                 let directoryReader = subItem.createReader();
@@ -88,13 +89,13 @@ function setListeners() {
         const filename = element.getAttribute("data-path");
         const extension = /(?:\.([^.]+))?$/.exec(filename)[1].toLowerCase();
 
-        if (images.indexOf(extension) > -1) {
+        if (images.includes(extension)) {
             element.setAttribute("data-bp", filename);
             element.setAttribute("data-image", "");
-        } else if (videos.indexOf(extension) > -1) {
+        } else if (videos.includes(extension)) {
             element.setAttribute("data-src", filename);
             element.setAttribute("data-video", "");
-        } else if (audio.indexOf(extension) > -1) {
+        } else if (audio.includes(extension)) {
             element.setAttribute("data-src", filename);
             element.setAttribute("data-audio", "");
         }
@@ -125,7 +126,7 @@ function setListeners() {
         });
     });
 
-    //audio // TODO: Fix IOException and scrubbing issues with chromium based browsers
+    // audio // TODO: Fix IOException and scrubbing issues with chromium based browsers
     document.querySelectorAll("[data-audio]").forEach(element => {
         element.addEventListener("click", audio => {
             BigPicture({
@@ -149,9 +150,11 @@ function setListeners() {
             const request = new XMLHttpRequest();
             const parent = e.target.closest("tr");
             const fileName = parent.getAttribute("data-href") || parent.getAttribute("data-path");
-            request.open("POST", `/delete/${path}/${fileName}`);
-            request.send();
-            parent.remove();
+            if (confirm(`Do you really want to delete: ${fileName}?`)) {
+                request.open("POST", `/delete/${path}/${fileName}`);
+                request.send();
+                parent.remove();
+            } else console.log("File not deleted!")
         })
     });
 

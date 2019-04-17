@@ -1,5 +1,4 @@
 html, body {
-    max-width: 100vw;
     overflow: visible;
 }
 
@@ -9,8 +8,6 @@ html, body {
 
 .prettyprint, .preview {
     position: absolute;
-    height: 100%;
-    max-width: 100vmin;
     border: none !important;
     overflow: visible;
 }

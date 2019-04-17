@@ -1,12 +1,56 @@
-html, body {
+body {
+    margin: 0 auto;
+}
+
+.main {
     font-family: Arial, Helvetica, sans-serif;
     color: #424242;
     padding: 0;
     margin: 0;
-    min-width: 100vmin;
-    min-height: 100%;
+}
+
+*:focus {
+    outline: none;
 }
 
 button {
     color: #424242;
+}
+
+.flex {
+    display: flex;
+    flex-flow: wrap column;
+    width: 100vw !important;
+    height: 100vh !important;
+    overflow: hidden;
+    text-align: center;
+    justify-content: center;
+    align-items: center;
+}
+
+.flex div {
+    margin: 10px;
+}
+
+.flex form input, .flex button {
+    background: none;
+    padding: 5px;
+    border: 1px solid #424242;
+    border-radius: 10px;
+}
+
+.flex .button {
+    text-decoration: none;
+    background: none;
+    padding: 5px;
+    border: 1px solid #424242;
+    border-radius: 10px;
+}
+
+.flex .button:visited {
+    color: #424242;
+}
+
+.username {
+    color: #7f8c8d;
 }
