@@ -2,7 +2,7 @@
 
 @layout.template("Index", RockerContent.NONE, RockerContent.NONE) -> {
 <div class="flex">
-    <h1>Welcome to Kloud <i class="username">@username</i>!</h1>
+    <h1>Welcome to Kloud<span class="username">@(username == "" ? "" : " " + username)</span>!</h1>
 
     <div>
         @if(username.length() > 0) {
