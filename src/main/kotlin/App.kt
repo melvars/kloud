@@ -9,6 +9,8 @@ import io.javalin.rendering.*
 import io.javalin.rendering.template.TemplateUtil.model
 import io.javalin.security.*
 import io.javalin.security.SecurityUtil.roles
+import io.javalin.staticfiles.*
+import java.io.*
 import java.util.logging.*
 
 const val fileHome = "files"
@@ -18,10 +20,13 @@ val fileController = FileController()
 val log = Logger.getLogger("App.kt")
 
 fun main() {
-    val app = Javalin.create()
-        .enableStaticFiles("../resources/")
-        .accessManager { handler, ctx, permittedRoles -> roleManager(handler, ctx, permittedRoles) }
-        .start(7000)
+    log.warning(File(".").absolutePath)
+
+    val app = Javalin.create().apply {
+        enableStaticFiles("${File(".").absolutePath}/src/main/resources/", Location.EXTERNAL)
+        port(7000)
+        accessManager { handler, ctx, permittedRoles -> roleManager(handler, ctx, permittedRoles) }
+    }.start()
 
     // Set up templating
     RockerRuntime.getInstance().isReloading = false

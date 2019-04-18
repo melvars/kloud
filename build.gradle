@@ -26,7 +26,7 @@ repositories {
 
 rocker {
     main {
-        optimize = true
+        optimize = false
         templateDir = file('src/main/resources/views')
         outputDir = file('src/main/resources/generated-views')
         classDir = file('src/main/resources/compiled-views')
