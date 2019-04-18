@@ -10,7 +10,7 @@ class UserHandler {
      * Checks and verifies users credentials and logs the user in
      */
     fun login(ctx: Context) {
-        if (getVerifiedUserId(ctx) > 0) ctx.redirect("/")
+        if (getVerifiedUserId(ctx) > 0 || !databaseController.isSetup()) ctx.redirect("/")
 
         val username = ctx.formParam("username").toString()
         val password = ctx.formParam("password").toString()
@@ -71,29 +71,24 @@ class UserHandler {
      * Sets up the general settings and admin credentials
      */
     fun setup(ctx: Context) {
-        if (databaseController.isSetup()) ctx.render(
-            "setup.rocker.html",
-            TemplateUtil.model("message", "Setup process already finished!")
-        ) else {
-            try {
-                val username = ctx.formParam("username").toString()
-                val password = ctx.formParam("password").toString()
-                val verifyPassword = ctx.formParam("verifyPassword").toString()
-                if (password == verifyPassword) {
-                    if (databaseController.createUser(username, password, "ADMIN")) {
-                        databaseController.toggleSetup()
-                        ctx.render("setup.rocker.html", TemplateUtil.model("message", "Setup succeeded!"))
-                    } else ctx.status(400).render(
-                        "setup.rocker.html",
-                        TemplateUtil.model("message", "User already exists!")
-                    )
+        try {
+            val username = ctx.formParam("username").toString()
+            val password = ctx.formParam("password").toString()
+            val verifyPassword = ctx.formParam("verifyPassword").toString()
+            if (password == verifyPassword) {
+                if (databaseController.createUser(username, password, "ADMIN")) {
+                    databaseController.toggleSetup()
+                    ctx.redirect("/login")
                 } else ctx.status(400).render(
                     "setup.rocker.html",
-                    TemplateUtil.model("message", "Passwords do not match!")
+                    TemplateUtil.model("message", "User already exists!")
                 )
-            } catch (_: Exception) {
-                ctx.status(400).render("setup.rocker.html", TemplateUtil.model("message", "An error occurred!"))
-            }
+            } else ctx.status(400).render(
+                "setup.rocker.html",
+                TemplateUtil.model("message", "Passwords do not match!")
+            )
+        } catch (_: Exception) {
+            ctx.status(400).render("setup.rocker.html", TemplateUtil.model("message", "An error occurred!"))
         }
     }
 

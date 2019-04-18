@@ -56,7 +56,7 @@ fun main() {
          * Renders the login page
          */
         get("/login", { ctx ->
-            if (userHandler.getVerifiedUserId(ctx) > 0) ctx.redirect("/")
+            if (userHandler.getVerifiedUserId(ctx) > 0 || !databaseController.isSetup()) ctx.redirect("/")
             else ctx.render(
                 "login.rocker.html",
                 model("message", "", "counter", 0)
@@ -77,7 +77,7 @@ fun main() {
          * Renders the setup page (only on initial use)
          */
         get("/setup", { ctx ->
-            if (databaseController.isSetup()) ctx.redirect("/")
+            if (databaseController.isSetup()) ctx.redirect("/login")
             else ctx.render(
                 "setup.rocker.html",
                 model("message", "")

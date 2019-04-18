@@ -185,15 +185,15 @@ class DatabaseController(dbFileLocation: String = "main.db") {
 
                 val userRoles = mutableListOf<Roles>()
                 RolesData.select { RolesData.id eq userRoleId }.map { it[RolesData.role] }.forEach {
-                    when (it) {
-                        "GUEST" -> {
+                    when (Roles.valueOf(it)) {
+                        Roles.GUEST -> {
                             userRoles.add(Roles.GUEST)
                         }
-                        "USER" -> {
+                        Roles.USER -> {
                             userRoles.add(Roles.GUEST)
                             userRoles.add(Roles.USER)
                         }
-                        "ADMIN" -> {
+                        Roles.ADMIN -> {
                             userRoles.add(Roles.GUEST)
                             userRoles.add(Roles.USER)
                             userRoles.add(Roles.ADMIN)
