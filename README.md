@@ -10,15 +10,16 @@
 ## Features of Kloud
 - Intuitive and minimalistic interface
 - Fast uploading/downloading/editing/deleting of files
+- Graphical previews of several file types (eg. images, videos, markdown, html)
 - Instant responses via efficient codebase
 - Multiple user support
-- Sharing between users
+- Sharing of files/directories
 - Supports Windows, MacOS, Linux and *BSD
 - Open source
 
 ## Development setup
+* Setup JVM Environment
 * Clone repository
-* `./gradlew[.bat] compileRocker`
 * `./gradlew[.bat] run`
 
 ## Help us with a small donation :)
