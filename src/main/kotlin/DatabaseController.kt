@@ -16,7 +16,8 @@ class DatabaseController(dbFileLocation: String = "main.db") {
      */
     object FileLocation : Table() {
         val id = integer("id").autoIncrement().primaryKey()
-        val path = text("path").uniqueIndex()
+        val path = text("path").uniqueIndex() // TODO: Don't use uniqueIndex() or double-check this with userId
+        val isDirectory = bool("isDirectory").default(false)
         val userId = integer("userId").references(UserData.id)
         val accessId = varchar("accessId", 64).uniqueIndex()
         val isShared = bool("isShared").default(false)
@@ -210,19 +211,23 @@ class DatabaseController(dbFileLocation: String = "main.db") {
     /**
      * Adds the uploaded file to the database
      */
-    fun addFile(fileLocation: String, usersId: Int) {
-        transaction {
+    fun addFile(fileLocation: String, usersId: Int, isDirectoryBool: Boolean = false): Boolean {
+        return transaction {
             try {
                 FileLocation.insert {
                     it[path] = fileLocation
                     it[userId] = usersId
                     it[accessId] = generateRandomString()
+                    it[isDirectory] = isDirectoryBool
                 }
+                true
             } catch (err: org.jetbrains.exposed.exceptions.ExposedSQLException) {
                 log.warning("File already exists!")
+                false
             }
         }
     }
+
 
     /**
      * Removes the file from the database
@@ -256,16 +261,23 @@ class DatabaseController(dbFileLocation: String = "main.db") {
     /**
      * Gets the shared file via [accessId]
      */
-    fun getSharedFile(accessId: String): Pair<Int, String> {
+    fun getSharedFile(accessId: String): ReturnFileData {
         return transaction {
             try {
-                if (FileLocation.select { FileLocation.accessId eq accessId }.map { it[FileLocation.isShared] }[0])
-                    FileLocation.select { FileLocation.accessId eq accessId }.map { it[FileLocation.userId] to it[FileLocation.path] }[0]
+                if (FileLocation.select { FileLocation.accessId eq accessId }.map { it[FileLocation.isShared] }[0]) {
+                    val userId =
+                        FileLocation.select { FileLocation.accessId eq accessId }.map { it[FileLocation.userId] }[0]
+                    val fileLocation =
+                        FileLocation.select { FileLocation.accessId eq accessId }.map { it[FileLocation.path] }[0]
+                    val isDir =
+                        FileLocation.select { FileLocation.accessId eq accessId }.map { it[FileLocation.isDirectory] }[0]
+                    ReturnFileData(userId, fileLocation, isDir)
+                }
                 else
-                    Pair(-1, "")
+                    ReturnFileData(-1, "", false)
             } catch (_: org.jetbrains.exposed.exceptions.ExposedSQLException) {
                 log.warning("File does not exist!")
-                Pair(-1, "")
+                ReturnFileData(-1, "", false)
             }
         }
     }
@@ -289,7 +301,7 @@ class DatabaseController(dbFileLocation: String = "main.db") {
     fun toggleSetup() {
         transaction {
             General.update({ General.initialUse eq false }) {
-                it[General.isSetup] = true
+                it[isSetup] = true
             }
         }
     }
@@ -357,3 +369,9 @@ class DatabaseController(dbFileLocation: String = "main.db") {
             .joinToString("")
     }
 }
+
+data class ReturnFileData(
+    val userId: Int,
+    val fileLocation: String,
+    val isDirectory: Boolean
+) // TODO: Think about using dataclass

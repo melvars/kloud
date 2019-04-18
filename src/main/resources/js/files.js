@@ -66,7 +66,7 @@ drop.addEventListener('drop', e => {
             iterateFiles(item);
         } else {
             formData.append("file", file);
-            request.open("POST", `/upload/${path}`);
+            request.open("POST", `/upload/${path}`, true);
             request.send(formData);
         }
     }
@@ -167,8 +167,9 @@ function setListeners() {
             const request = new XMLHttpRequest();
             const parent = e.target.closest("tr");
             const fileName = parent.getAttribute("data-href") || parent.getAttribute("data-path");
+            const type = fileName.endsWith('/') ? 'dir' : 'file';
 
-            request.open("POST", `/share/${path}/${fileName}`);
+            request.open("POST", `/share/${path}/${fileName}?type=${type}`, true);
             request.onload = () => {
                 if (request.readyState === 4) {
                     if (request.status === 200) {  // TODO: fix clipboard in Firefox

@@ -3,11 +3,11 @@ package space.anity
 import io.javalin.*
 import io.javalin.core.util.*
 import io.javalin.rendering.template.*
+import io.javalin.rendering.template.TemplateUtil.model
 import java.io.*
 import java.nio.charset.*
 import java.nio.file.*
 import java.text.*
-import java.util.*
 
 class FileController {
     /**
@@ -21,7 +21,7 @@ class FileController {
                 File("$usersFileHome/${ctx.splats()[0]}").isDirectory -> {
                     val files = ArrayList<Array<String>>()
                     Files.list(Paths.get("$usersFileHome/${ctx.splats()[0]}/")).forEach {
-                        val fileName = it.toString()
+                        val filename = it.toString()
                             .drop(usersFileHome.length + (if (ctx.splats()[0].isNotEmpty()) ctx.splats()[0].length + 2 else 1))
                         val filePath = "$usersFileHome${it.toString().drop(usersFileHome.length)}"
                         val file = File(filePath)
@@ -29,7 +29,7 @@ class FileController {
                         files.add(
                             // TODO: Clean up file array responses
                             arrayOf(
-                                if (file.isDirectory) "$fileName/" else fileName,
+                                if (file.isDirectory) "$filename/" else filename,
                                 humanReadableBytes(fileSize),
                                 SimpleDateFormat("MM/dd/yyyy HH:mm:ss").format(file.lastModified()).toString(),
                                 if (file.isDirectory) "true" else isHumanReadable(file).toString(),
@@ -113,11 +113,18 @@ class FileController {
     fun upload(ctx: Context) {
         ctx.uploadedFiles("file").forEach { (_, content, name, _) ->
             val path = "${ctx.splats()[0]}/$name"
-            FileUtil.streamToFile(
-                content,
-                "$fileHome/${userHandler.getVerifiedUserId(ctx)}/$path"
-            )
-            databaseController.addFile(path, userHandler.getVerifiedUserId(ctx))
+            val uid = userHandler.getVerifiedUserId(ctx)
+            var addPath = ""
+            path.split("/").forEach {
+                addPath += "$it/"
+                if (!path.endsWith(it)) databaseController.addFile(addPath, uid, true)
+            }
+            if (databaseController.addFile(path, uid)) {
+                FileUtil.streamToFile(
+                    content,
+                    "$fileHome/$uid/$path"
+                )
+            }
         }
     }
 
@@ -144,10 +151,12 @@ class FileController {
     /**
      * Shares the requested file via the accessId
      */
-    fun share(ctx: Context) { // TODO: Add support for directory sharing
+    fun share(ctx: Context) {
         val userId = userHandler.getVerifiedUserId(ctx)
+        val shareType = ctx.queryParam("type").toString()
         if (userId > 0) {
-            val path = if (ctx.splats()[0].startsWith("/")) ctx.splats()[0] else "/${ctx.splats()[0]}"
+            val path =
+                "${(if (ctx.splats()[0].startsWith("/")) ctx.splats()[0] else "/${ctx.splats()[0]}")}${if (shareType == "dir") "/" else ""}"
             val accessId = databaseController.getAccessId(path, userId)
             ctx.result("${ctx.host()}/shared?id=$accessId")
         }
@@ -159,22 +168,54 @@ class FileController {
     fun renderShared(ctx: Context) {
         val accessId = ctx.queryParam("id").toString()
         val sharedFileData = databaseController.getSharedFile(accessId)
-        if (sharedFileData.first > 0 && sharedFileData.second.isNotEmpty()) {
-            val sharedFileLocation = "$fileHome/${sharedFileData.first}/${sharedFileData.second}"
-            if (isHumanReadable(File(sharedFileLocation))) {
+        if (sharedFileData.userId > 0 && sharedFileData.fileLocation.isNotEmpty()) {
+            val sharedFileLocation = "$fileHome/${sharedFileData.userId}/${sharedFileData.fileLocation}"
+            if (!sharedFileData.isDirectory) {
+                if (isHumanReadable(File(sharedFileLocation))) {
+                    ctx.render(
+                        "fileview.rocker.html", model(
+                            "content", Files.readAllLines(
+                                Paths.get(sharedFileLocation),
+                                Charsets.UTF_8
+                            ).joinToString(separator = "\n"),
+                            "filename", File(sharedFileLocation).name,
+                            "extension", File(sharedFileLocation).extension
+                        )
+                    )
+                } else {
+                    ctx.contentType(Files.probeContentType(Paths.get(sharedFileLocation)))
+                    ctx.result(FileInputStream(File(sharedFileLocation)))
+                }
+            } else {
+                // TODO: Add support for accessing files in shared directories
+                // TODO: Combine the two file-crawling-render functions
+                val files = ArrayList<Array<String>>()
+                Files.list(Paths.get(sharedFileLocation)).forEach {
+                    val filename = it.toString()
+                        .drop(sharedFileLocation.length - 1)
+                    val filePath = "$sharedFileLocation$filename"
+                    val file = File(filePath)
+                    val fileSize = if (file.isDirectory) getDirectorySize(file) else file.length()
+                    files.add(
+                        // TODO: Clean up file array responses
+                        arrayOf(
+                            if (file.isDirectory) "$filename/" else filename,
+                            humanReadableBytes(fileSize),
+                            SimpleDateFormat("MM/dd/yyyy HH:mm:ss").format(file.lastModified()).toString(),
+                            if (file.isDirectory) "true" else isHumanReadable(file).toString(),
+                            file.isDirectory.toString(),
+                            fileSize.toString(), // unformatted file size
+                            file.lastModified().toString() // unformatted last modified date
+                        )
+                    )
+                }
+                //files.sortWith(String.CASE_INSENSITIVE_ORDER) // TODO: Reimplement file array sorting in backend
                 ctx.render(
-                    "fileview.rocker.html", TemplateUtil.model(
-                        "content", Files.readAllLines(
-                            Paths.get(sharedFileLocation),
-                            Charsets.UTF_8
-                        ).joinToString(separator = "\n"),
-                        "filename", File(sharedFileLocation).name,
-                        "extension", File(sharedFileLocation).extension
+                    "files.rocker.html", TemplateUtil.model(
+                        "files", files,
+                        "path", sharedFileData.fileLocation
                     )
                 )
-            } else {
-                ctx.contentType(Files.probeContentType(Paths.get(sharedFileLocation)))
-                ctx.result(FileInputStream(File(sharedFileLocation)))
             }
         } else {
             log.info("Unknown file!")
