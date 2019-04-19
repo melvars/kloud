@@ -3,9 +3,11 @@ package space.anity
 import io.javalin.*
 import io.javalin.rendering.template.*
 import org.joda.time.*
+import java.util.logging.*
 import kotlin.math.*
 
 class UserHandler {
+    private val log = Logger.getLogger(this.javaClass.name)
     /**
      * Checks and verifies users credentials and logs the user in
      */

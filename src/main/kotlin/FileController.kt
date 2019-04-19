@@ -8,8 +8,11 @@ import java.io.*
 import java.nio.charset.*
 import java.nio.file.*
 import java.text.*
+import java.util.logging.*
 
 class FileController {
+    private val log = Logger.getLogger(this.javaClass.name)
+
     /**
      * Crawls the requested file and either renders the directory view or the file view
      */
@@ -113,16 +116,16 @@ class FileController {
     fun upload(ctx: Context) {
         ctx.uploadedFiles("file").forEach { (_, content, name, _) ->
             val path = "${ctx.splats()[0]}/$name"
-            val uid = userHandler.getVerifiedUserId(ctx)
+            val userId = userHandler.getVerifiedUserId(ctx)
             var addPath = ""
             path.split("/").forEach {
                 addPath += "$it/"
-                if (!path.endsWith(it)) databaseController.addFile(addPath, uid, true)
+                if (!path.endsWith(it)) databaseController.addFile(addPath, userId, true)
             }
-            if (databaseController.addFile(path, uid)) {
+            if (databaseController.addFile(path, userId)) {
                 FileUtil.streamToFile(
                     content,
-                    "$fileHome/$uid/$path"
+                    "$fileHome/$userId/$path"
                 )
             }
         }
@@ -144,7 +147,7 @@ class FileController {
         if (userId > 0) {
             val path = ctx.splats()[0]
             File("$fileHome/$userId/$path").delete()  // File.deleteRecursively() kind of "crashes" server but deletes folder :'(
-            databaseController.deleteFile(path, userId)
+            databaseController.deleteFile(path, userId)  // kind of works for deleting directories
         }
     }
 

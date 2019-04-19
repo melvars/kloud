@@ -17,11 +17,9 @@ const val fileHome = "files"
 val databaseController = DatabaseController()
 val userHandler = UserHandler()
 val fileController = FileController()
-val log = Logger.getLogger("App.kt")
+private val log = Logger.getLogger("App.kt")
 
 fun main() {
-    log.warning(File(".").absolutePath)
-
     val app = Javalin.create().apply {
         enableStaticFiles("${File(".").absolutePath}/src/main/resources/", Location.EXTERNAL)
         port(7000)

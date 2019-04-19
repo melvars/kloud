@@ -222,7 +222,7 @@ class DatabaseController(dbFileLocation: String = "main.db") {
                 }
                 true
             } catch (err: org.jetbrains.exposed.exceptions.ExposedSQLException) {
-                log.warning("File already exists!")
+                if (!isDirectoryBool) log.warning("File already exists!")
                 false
             }
         }
@@ -235,7 +235,8 @@ class DatabaseController(dbFileLocation: String = "main.db") {
     fun deleteFile(fileLocation: String, userId: Int) {
         transaction {
             try {
-                FileLocation.deleteWhere { (FileLocation.path eq fileLocation) and (FileLocation.userId eq userId) }
+                // TODO: Think of new solution for directory deleting (instead of wildcards)
+                FileLocation.deleteWhere { (FileLocation.path like "$fileLocation%") and (FileLocation.userId eq userId) }
             } catch (_: org.jetbrains.exposed.exceptions.ExposedSQLException) {
                 log.warning("File does not exist!")
             }
@@ -272,8 +273,7 @@ class DatabaseController(dbFileLocation: String = "main.db") {
                     val isDir =
                         FileLocation.select { FileLocation.accessId eq accessId }.map { it[FileLocation.isDirectory] }[0]
                     ReturnFileData(userId, fileLocation, isDir)
-                }
-                else
+                } else
                     ReturnFileData(-1, "", false)
             } catch (_: org.jetbrains.exposed.exceptions.ExposedSQLException) {
                 log.warning("File does not exist!")

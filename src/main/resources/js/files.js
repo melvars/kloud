@@ -18,10 +18,9 @@ drop.addEventListener('drop', e => {
     e.preventDefault();
     drop.style.background = "white";
     const items = e.dataTransfer.items;
+    const uploadedFiles = [];
 
     for (let i = 0; i < items.length; i++) {
-        const request = new XMLHttpRequest();
-        const formData = new FormData();
         const item = items[i].webkitGetAsEntry();
         const file = items[i].getAsFile();
 
@@ -52,12 +51,18 @@ drop.addEventListener('drop', e => {
             } else {
                 subItem.file(subFile => {
                     // TODO: Add support for nested directory upload with more than 1 layer - via webkitRelativePath on firefox?
-                    formData.append("file", subFile);
-                    console.log(subFile);
-                    console.log(file);
-                    if (subFile.webkitRelativePath === "") request.open("POST", `/upload/${path}/${file.name}`);
-                    else request.open("POST", `/upload/${path}`);
-                    request.send(formData);
+                    console.log(uploadedFiles);
+                    console.log(`${path}/${file.name}/${subFile.name}`);
+                    if (!uploadedFiles.includes(`${path}/${file.name}/${subFile.name}`)) {
+                        const formData = new FormData();
+                        const request = new XMLHttpRequest();
+
+                        uploadedFiles.push(`${path}/${file.name}/${subFile.name}`);
+                        formData.append("file", subFile);
+                        if (subFile.webkitRelativePath === "") request.open("POST", `/upload/${path}/${file.name}`);
+                        else request.open("POST", `/upload/${path}`);
+                        request.send(formData);
+                    }
                 })
             }
         };
@@ -65,9 +70,14 @@ drop.addEventListener('drop', e => {
         if (item.isDirectory) {
             iterateFiles(item);
         } else {
-            formData.append("file", file);
-            request.open("POST", `/upload/${path}`, true);
-            request.send(formData);
+            if (!uploadedFiles.includes(`${path}/${file.name}`)) {
+                const formData = new FormData();
+                const request = new XMLHttpRequest();
+
+                formData.append("file", file);
+                request.open("POST", `/upload/${path}`);
+                request.send(formData);
+            }
         }
     }
 
@@ -153,7 +163,7 @@ function setListeners() {
             const parent = e.target.closest("tr");
             const fileName = parent.getAttribute("data-href") || parent.getAttribute("data-path");
             if (confirm(`Do you really want to delete: ${fileName}?`)) {
-                request.open("POST", `/delete/${path}/${fileName}`);
+                request.open("POST", `/delete/${path}/${fileName}`, true);
                 request.send();
                 parent.remove();
             } else console.log("File not deleted!")
