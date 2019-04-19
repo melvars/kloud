@@ -228,7 +228,6 @@ class DatabaseController(dbFileLocation: String = "main.db") {
         }
     }
 
-
     /**
      * Removes the file from the database
      */

@@ -51,11 +51,15 @@ drop.addEventListener('drop', e => {
             } else {
                 subItem.file(subFile => {
                     // TODO: Add support for nested directory upload with more than 1 layer - via webkitRelativePath on firefox?
-                    console.log(uploadedFiles);
-                    console.log(`${path}/${file.name}/${subFile.name}`);
                     if (!uploadedFiles.includes(`${path}/${file.name}/${subFile.name}`)) {
                         const formData = new FormData();
                         const request = new XMLHttpRequest();
+
+                        request.upload.onprogress = e => {
+                            if (e.lengthComputable) {
+                                console.log(`${subFile.name}: ${e.loaded / e.total * 100}%`)
+                            }
+                        };
 
                         uploadedFiles.push(`${path}/${file.name}/${subFile.name}`);
                         formData.append("file", subFile);
@@ -73,6 +77,12 @@ drop.addEventListener('drop', e => {
             if (!uploadedFiles.includes(`${path}/${file.name}`)) {
                 const formData = new FormData();
                 const request = new XMLHttpRequest();
+
+                request.upload.onprogress = e => {
+                    if (e.lengthComputable) {
+                        console.log(`${file.name}: ${e.loaded / e.total * 100}%`)
+                    }
+                };
 
                 formData.append("file", file);
                 request.open("POST", `/upload/${path}`);
@@ -114,7 +124,7 @@ function setListeners() {
 
         element.addEventListener("click", () => {
             if (images.indexOf(extension) === -1 && videos.indexOf(extension) === -1 && audio.indexOf(extension) === -1)
-                window.location = filename; // download binary files
+                window.location = `/files/${path}/${filename}`; // download binary files
         });
     });
 
@@ -151,7 +161,7 @@ function setListeners() {
     // normal files
     document.querySelectorAll("[data-href]").forEach(element => {
         element.addEventListener("click", () => {
-            window.location = element.getAttribute("data-href");
+            window.location = `/files${path}/${element.getAttribute("data-href")}`;
         })
     });
 

@@ -11,6 +11,7 @@ import io.javalin.security.*
 import io.javalin.security.SecurityUtil.roles
 import io.javalin.staticfiles.*
 import java.io.*
+import java.net.*
 import java.util.logging.*
 
 const val fileHome = "files"
@@ -35,6 +36,18 @@ fun main() {
     databaseController.initDatabase()
 
     app.routes {
+        /**
+         * Normalizes and cleans the requested url
+         */
+        before("/*") { ctx ->
+            run {
+                if (URI(ctx.url()).normalize().toString() != ctx.url()) {
+                    log.warning("Normalized url from ${ctx.url()} to ${URI(ctx.url()).normalize()}")
+                    ctx.redirect(URI(ctx.url()).normalize().toString())
+                }
+            }
+        }
+
         /**
          * Main page
          * TODO: Create landing page

@@ -19,13 +19,14 @@ class FileController {
     fun crawl(ctx: Context) {
         try {
             val usersFileHome = "$fileHome/${userHandler.getVerifiedUserId(ctx)}"
+            val firstParam = ctx.splat(0) ?: ""
             File(usersFileHome).mkdirs()
             when {
-                File("$usersFileHome/${ctx.splats()[0]}").isDirectory -> {
+                File("$usersFileHome/$firstParam").isDirectory -> {
                     val files = ArrayList<Array<String>>()
-                    Files.list(Paths.get("$usersFileHome/${ctx.splats()[0]}/")).forEach {
+                    Files.list(Paths.get("$usersFileHome/$firstParam/")).forEach {
                         val filename = it.toString()
-                            .drop(usersFileHome.length + (if (ctx.splats()[0].isNotEmpty()) ctx.splats()[0].length + 2 else 1))
+                            .drop(usersFileHome.length + (if (firstParam.isNotEmpty()) firstParam.length + 2 else 1))
                         val filePath = "$usersFileHome${it.toString().drop(usersFileHome.length)}"
                         val file = File(filePath)
                         val fileSize = if (file.isDirectory) getDirectorySize(file) else file.length()
@@ -45,28 +46,31 @@ class FileController {
                     //files.sortWith(String.CASE_INSENSITIVE_ORDER) // TODO: Reimplement file array sorting in backend
                     ctx.render(
                         "files.rocker.html", TemplateUtil.model(
-                            "files", files,
-                            "path", ctx.splats()[0]
+                            "files",
+                            files,
+                            "path",
+                            (if (firstParam.firstOrNull() != '/' && firstParam.isNotEmpty()) "/$firstParam" else firstParam)
                         )
                     )
                 }
-                isHumanReadable(File("$usersFileHome/${ctx.splats()[0]}")) ->
+                isHumanReadable(File("$usersFileHome/$firstParam")) ->
                     ctx.render(
                         "fileview.rocker.html", TemplateUtil.model(
                             "content", Files.readAllLines(
-                                Paths.get("$usersFileHome/${ctx.splats()[0]}"),
+                                Paths.get("$usersFileHome/$firstParam"),
                                 Charsets.UTF_8
                             ).joinToString(separator = "\n"),
-                            "filename", File("$usersFileHome/${ctx.splats()[0]}").name,
-                            "extension", File("$usersFileHome/${ctx.splats()[0]}").extension
+                            "filename", File("$usersFileHome/$firstParam").name,
+                            "extension", File("$usersFileHome/$firstParam").extension
                         )
                     )
                 else -> {
-                    ctx.contentType(Files.probeContentType(Paths.get("$usersFileHome/${ctx.splats()[0]}")))
-                    ctx.result(FileInputStream(File("$usersFileHome/${ctx.splats()[0]}")))
+                    ctx.contentType(Files.probeContentType(Paths.get("$usersFileHome/$firstParam")))
+                    ctx.result(FileInputStream(File("$usersFileHome/$firstParam")))
                 }
             }
-        } catch (_: Exception) {
+        } catch (err: Exception) {
+            log.warning(err.toString())
             throw NotFoundResponse("Error: File or directory does not exist.")
         }
     }
@@ -115,7 +119,7 @@ class FileController {
      */
     fun upload(ctx: Context) {
         ctx.uploadedFiles("file").forEach { (_, content, name, _) ->
-            val path = "${ctx.splats()[0]}/$name"
+            val path = "${ctx.splat(0)}/$name"
             val userId = userHandler.getVerifiedUserId(ctx)
             var addPath = ""
             path.split("/").forEach {
@@ -145,7 +149,7 @@ class FileController {
     fun delete(ctx: Context) { // TODO: Fix deleting of directories
         val userId = userHandler.getVerifiedUserId(ctx)
         if (userId > 0) {
-            val path = ctx.splats()[0]
+            val path = ctx.splat(0) ?: ""
             File("$fileHome/$userId/$path").delete()  // File.deleteRecursively() kind of "crashes" server but deletes folder :'(
             databaseController.deleteFile(path, userId)  // kind of works for deleting directories
         }
@@ -157,9 +161,10 @@ class FileController {
     fun share(ctx: Context) {
         val userId = userHandler.getVerifiedUserId(ctx)
         val shareType = ctx.queryParam("type").toString()
+        val firstParam = ctx.splat(0) ?: ""
         if (userId > 0) {
             val path =
-                "${(if (ctx.splats()[0].startsWith("/")) ctx.splats()[0] else "/${ctx.splats()[0]}")}${if (shareType == "dir") "/" else ""}"
+                "${(if (firstParam.startsWith("/")) firstParam else "/$firstParam")}${if (shareType == "dir") "/" else ""}"
             val accessId = databaseController.getAccessId(path, userId)
             ctx.result("${ctx.host()}/shared?id=$accessId")
         }
