@@ -43,7 +43,7 @@ class FileController {
                             )
                         )
                     }
-                    //files.sortWith(String.CASE_INSENSITIVE_ORDER) // TODO: Reimplement file array sorting in backend
+                    files.sortWith(compareBy { it.first() })
                     ctx.render(
                         "files.rocker.html", TemplateUtil.model(
                             "files",
@@ -222,7 +222,7 @@ class FileController {
                         )
                     )
                 }
-                //files.sortWith(String.CASE_INSENSITIVE_ORDER) // TODO: Reimplement file array sorting in backend
+                files.sortWith(compareBy { it.first() })
                 ctx.render(
                     "files.rocker.html", TemplateUtil.model(
                         "files", files,
