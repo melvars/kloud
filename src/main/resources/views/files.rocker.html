@@ -13,14 +13,14 @@
 
 @layout.template(files.size() + " Files", css, js) -> {
 <div class="drop" id="drop">
-    <h2>
-        <!-- TODO: Add functionality to breadcrumb navigation -->
+    <h2 class="navigation">
         <i class="icon ion-md-home"></i>
         @for (int i = 0; i < path.split("/").length - 1; i++) {
-        @path.split("/")[i] <i class='icon ion-ios-arrow-forward'></i>
+        <a href='@(new String(new char[path.split("/").length - i - 1]).replace("\0", "../"))'>@path.split("/")[i]</a>
+        <i class='icon ion-ios-arrow-forward'></i>
         }
         @if (path.split("/").length > 0) {
-        @(path.split("/")[path.split("/").length - 1])
+        <a href="">@(path.split("/")[path.split("/").length - 1])</a>
         }
     </h2>
 

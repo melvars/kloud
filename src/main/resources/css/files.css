@@ -2,6 +2,11 @@
     transition: all .2s linear;
 }
 
+.navigation a {
+    text-decoration: none;
+    color: inherit;
+}
+
 table {
     table-layout: fixed;
     width: 100%;
