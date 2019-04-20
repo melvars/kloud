@@ -51,7 +51,7 @@ drop.addEventListener('drop', e => {
             } else {
                 subItem.file(subFile => {
                     // TODO: Add support for nested directory upload with more than 1 layer - via webkitRelativePath on firefox?
-                    if (!uploadedFiles.includes(`${path}/${file.name}/${subFile.name}`)) {
+                    if (!uploadedFiles.includes(`/${path}/${file.name}/${subFile.name}`.clean())) {
                         const formData = new FormData();
                         const request = new XMLHttpRequest();
 
@@ -61,10 +61,10 @@ drop.addEventListener('drop', e => {
                             }
                         };
 
-                        uploadedFiles.push(`${path}/${file.name}/${subFile.name}`);
+                        uploadedFiles.push(`/${path}/${file.name}/${subFile.name}`.clean());
                         formData.append("file", subFile);
-                        if (subFile.webkitRelativePath === "") request.open("POST", `/upload/${path}/${file.name}`);
-                        else request.open("POST", `/upload/${path}`);
+                        if (subFile.webkitRelativePath === "") request.open("POST", `/upload/${path}/${file.name}`.clean());
+                        else request.open("POST", `/upload/${path}`.clean());
                         request.send(formData);
                     }
                 })
@@ -74,7 +74,7 @@ drop.addEventListener('drop', e => {
         if (item.isDirectory) {
             iterateFiles(item);
         } else {
-            if (!uploadedFiles.includes(`${path}/${file.name}`)) {
+            if (!uploadedFiles.includes(`/${path}/${file.name}`.clean())) {
                 const formData = new FormData();
                 const request = new XMLHttpRequest();
 
@@ -85,7 +85,7 @@ drop.addEventListener('drop', e => {
                 };
 
                 formData.append("file", file);
-                request.open("POST", `/upload/${path}`);
+                request.open("POST", `/upload/${path}`.clean());
                 request.send(formData);
             }
         }
@@ -124,7 +124,7 @@ function setListeners() {
 
         element.addEventListener("click", () => {
             if (images.indexOf(extension) === -1 && videos.indexOf(extension) === -1 && audio.indexOf(extension) === -1)
-                window.location = `/files/${path}/${filename}`; // download binary files
+                window.location = `/files/${path}/${filename}`.clean(); // download binary files
         });
     });
 
@@ -161,7 +161,7 @@ function setListeners() {
     // normal files
     document.querySelectorAll("[data-href]").forEach(element => {
         element.addEventListener("click", () => {
-            window.location = `/files${path}/${element.getAttribute("data-href")}`;
+            window.location = `/files/${path}/${element.getAttribute("data-href")}`.clean();
         })
     });
 
@@ -173,7 +173,7 @@ function setListeners() {
             const parent = e.target.closest("tr");
             const fileName = parent.getAttribute("data-href") || parent.getAttribute("data-path");
             if (confirm(`Do you really want to delete: ${fileName}?`)) {
-                request.open("POST", `/delete/${path}/${fileName}`, true);
+                request.open("POST", `/delete/${path}/${fileName}`.clean(), true);
                 request.send();
                 parent.remove();
             } else console.log("File not deleted!")
@@ -189,7 +189,7 @@ function setListeners() {
             const fileName = parent.getAttribute("data-href") || parent.getAttribute("data-path");
             const type = fileName.endsWith('/') ? 'dir' : 'file';
 
-            request.open("POST", `/share/${path}/${fileName}?type=${type}`, true);
+            request.open("POST", `/share/${path}/${fileName}?type=${type}`.clean());
             request.onload = () => {
                 if (request.readyState === 4) {
                     if (request.status === 200) {  // TODO: fix clipboard in Firefox
@@ -239,3 +239,11 @@ document.querySelectorAll("thead tr > th").forEach((header, index) => {
         header.setAttribute("data-asc", (ascending === "false").toString())
     })
 });
+
+/**
+ * Cleans the string (in this case the url)
+ * @returns {String}
+ */
+String.prototype.clean = function () {
+    return this.replace(/\/\/+/g, '/')
+};

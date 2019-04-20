@@ -40,12 +40,7 @@ fun main() {
          * Normalizes and cleans the requested url
          */
         before("/*") { ctx ->
-            run {
-                if (URI(ctx.url()).normalize().toString() != ctx.url()) {
-                    log.warning("Normalized url from ${ctx.url()} to ${URI(ctx.url()).normalize()}")
-                    ctx.redirect(URI(ctx.url()).normalize().toString())
-                }
-            }
+            if (URI(ctx.url()).normalize().toString() != ctx.url()) ctx.redirect(URI(ctx.url()).normalize().toString())
         }
 
         /**

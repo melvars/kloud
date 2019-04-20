@@ -49,7 +49,7 @@ class FileController {
                             "files",
                             files,
                             "path",
-                            (if (firstParam.firstOrNull() != '/' && firstParam.isNotEmpty()) "/$firstParam" else firstParam)
+                            (if (firstParam.firstOrNull() == '/') firstParam.drop(1) else firstParam)
                         )
                     )
                 }
@@ -106,6 +106,9 @@ class FileController {
         return d > 0.95
     }
 
+    /**
+     * Converts bytes to human-readable text like 100MiB
+     */
     private fun humanReadableBytes(bytes: Long): String {
         val unit = 1024
         if (bytes < unit) return "$bytes B"
@@ -118,8 +121,10 @@ class FileController {
      * Saves multipart media data into requested directory
      */
     fun upload(ctx: Context) {
+        val firstParam = ctx.splat(0) ?: ""
         ctx.uploadedFiles("file").forEach { (_, content, name, _) ->
-            val path = "${ctx.splat(0)}/$name"
+            val path = if (firstParam.isEmpty()) name else "$firstParam/$name"
+
             val userId = userHandler.getVerifiedUserId(ctx)
             var addPath = ""
             path.split("/").forEach {
@@ -163,8 +168,7 @@ class FileController {
         val shareType = ctx.queryParam("type").toString()
         val firstParam = ctx.splat(0) ?: ""
         if (userId > 0) {
-            val path =
-                "${(if (firstParam.startsWith("/")) firstParam else "/$firstParam")}${if (shareType == "dir") "/" else ""}"
+            val path = "$firstParam${if (shareType == "dir") "/" else ""}"
             val accessId = databaseController.getAccessId(path, userId)
             ctx.result("${ctx.host()}/shared?id=$accessId")
         }
@@ -191,7 +195,8 @@ class FileController {
                         )
                     )
                 } else {
-                    ctx.contentType(Files.probeContentType(Paths.get(sharedFileLocation)))
+                    val fileProbe = Files.probeContentType(Paths.get(sharedFileLocation)) // is null if file type is not recognized
+                    ctx.contentType(fileProbe)
                     ctx.result(FileInputStream(File(sharedFileLocation)))
                 }
             } else {
@@ -221,7 +226,8 @@ class FileController {
                 ctx.render(
                     "files.rocker.html", TemplateUtil.model(
                         "files", files,
-                        "path", sharedFileData.fileLocation
+                        "path",
+                        (if (sharedFileData.fileLocation.firstOrNull() != '/') "/${sharedFileData.fileLocation}" else sharedFileData.fileLocation)
                     )
                 )
             }

@@ -274,7 +274,7 @@ class DatabaseController(dbFileLocation: String = "main.db") {
                     ReturnFileData(userId, fileLocation, isDir)
                 } else
                     ReturnFileData(-1, "", false)
-            } catch (_: org.jetbrains.exposed.exceptions.ExposedSQLException) {
+            } catch (_: Exception) {
                 log.warning("File does not exist!")
                 ReturnFileData(-1, "", false)
             }
@@ -373,4 +373,4 @@ data class ReturnFileData(
     val userId: Int,
     val fileLocation: String,
     val isDirectory: Boolean
-) // TODO: Think about using dataclass
+)
