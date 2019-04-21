@@ -22,6 +22,7 @@ class FileController {
             val firstParam = ctx.splat(0) ?: ""
             File(usersFileHome).mkdirs()
             when {
+                ctx.queryParam("raw") != null -> ctx.result(FileInputStream(File("$usersFileHome/$firstParam")))
                 File("$usersFileHome/$firstParam").isDirectory -> {
                     val files = ArrayList<Array<String>>()
                     Files.list(Paths.get("$usersFileHome/$firstParam/")).forEach {
@@ -46,10 +47,8 @@ class FileController {
                     files.sortWith(compareBy { it.first() })
                     ctx.render(
                         "files.rocker.html", TemplateUtil.model(
-                            "files",
-                            files,
-                            "path",
-                            (if (firstParam.firstOrNull() == '/') firstParam.drop(1) else firstParam)
+                            "files", files,
+                            "path", (if (firstParam.firstOrNull() == '/') firstParam.drop(1) else firstParam)
                         )
                     )
                 }
@@ -227,7 +226,7 @@ class FileController {
                     "files.rocker.html", TemplateUtil.model(
                         "files", files,
                         "path",
-                        (if (sharedFileData.fileLocation.firstOrNull() != '/') "/${sharedFileData.fileLocation}" else sharedFileData.fileLocation)
+                        (if (sharedFileData.fileLocation.firstOrNull() == '/') sharedFileData.fileLocation.drop(1) else sharedFileData.fileLocation)
                     )
                 )
             }

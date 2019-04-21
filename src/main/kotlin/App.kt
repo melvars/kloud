@@ -45,7 +45,6 @@ fun main() {
 
         /**
          * Main page
-         * TODO: Create landing page
          */
         get(
             "/",
@@ -97,13 +96,11 @@ fun main() {
 
         /**
          * Renders the file list view
-         * TODO: Fix possible security issue with "../"
          */
         get("/files/*", fileController::crawl, roles(Roles.USER))
 
         /**
          * Receives and saves multipart media data
-         * TODO: Fix possible security issue with "../"
          */
         post("/upload/*", fileController::upload, roles(Roles.USER))
 
