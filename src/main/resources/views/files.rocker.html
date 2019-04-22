@@ -1,12 +1,15 @@
 @import java.util.ArrayList
-@args (ArrayList files, String path)
+@args (ArrayList files, String path, Boolean isShared)
 
 @css => {
 <link href="/css/files.css" rel="stylesheet">
 }
 
 @js => {
-<script>const path = "@path";</script>
+<script>
+    const path = "@path";
+    const isShared = "@isShared";
+</script>
 <script src="/js/imagePreview.js"></script>
 <script src="/js/files.js"></script>
 }

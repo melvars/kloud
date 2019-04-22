@@ -48,7 +48,8 @@ class FileController {
                     ctx.render(
                         "files.rocker.html", TemplateUtil.model(
                             "files", files,
-                            "path", (if (firstParam.firstOrNull() == '/') firstParam.drop(1) else firstParam)
+                            "path", (if (firstParam.firstOrNull() == '/') firstParam.drop(1) else firstParam),
+                            "isShared", false
                         )
                     )
                 }
@@ -194,12 +195,11 @@ class FileController {
                         )
                     )
                 } else {
-                    val fileProbe = Files.probeContentType(Paths.get(sharedFileLocation)) // is null if file type is not recognized
-                    ctx.contentType(fileProbe)
+                    // TODO: Fix name of downloaded file ("shared")
+                    ctx.contentType(Files.probeContentType(Paths.get(sharedFileLocation)))
                     ctx.result(FileInputStream(File(sharedFileLocation)))
                 }
             } else {
-                // TODO: Add support for accessing files in shared directories
                 // TODO: Combine the two file-crawling-render functions
                 val files = ArrayList<Array<String>>()
                 Files.list(Paths.get(sharedFileLocation)).forEach {
@@ -226,12 +226,20 @@ class FileController {
                     "files.rocker.html", TemplateUtil.model(
                         "files", files,
                         "path",
-                        (if (sharedFileData.fileLocation.firstOrNull() == '/') sharedFileData.fileLocation.drop(1) else sharedFileData.fileLocation)
+                        (if (sharedFileData.fileLocation.firstOrNull() == '/') sharedFileData.fileLocation.drop(1) else sharedFileData.fileLocation),
+                        "isShared", true
                     )
                 )
             }
         } else {
             log.info("Unknown file!")
         }
+    }
+
+    fun handleSharedFile(ctx: Context) {
+        val fileName = ctx.formParam("fileName").toString()
+        val accessId = ctx.formParam("accessId").toString()
+        val returnAccessId = databaseController.getAccessIdOfDirectory(fileName, accessId)
+        ctx.result(returnAccessId)
     }
 }

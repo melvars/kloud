@@ -243,15 +243,32 @@ class DatabaseController(dbFileLocation: String = "main.db") {
     }
 
     /**
-     * Returns the accessId of the given File
+     * Returns the accessId of the given file
      */
     fun getAccessId(fileLocation: String, userId: Int): String {
         return transaction {
             try {
-                FileLocation.update({ (FileLocation.userId eq userId) and (FileLocation.path eq fileLocation) }) {
+                FileLocation.update({ (FileLocation.userId eq userId) and (FileLocation.path like "$fileLocation%") }) {
                     it[isShared] = true
                 }
                 FileLocation.select { (FileLocation.path eq fileLocation) and (FileLocation.userId eq userId) }.map { it[FileLocation.accessId] }[0]
+            } catch (_: Exception) {
+                ""
+            }
+        }
+    }
+
+    /**
+     * Returns accessId of file in directory
+     */
+    fun getAccessIdOfDirectory(fileName: String, accessId: String): String {
+        return transaction {
+            try {
+                val fileData =
+                    FileLocation.select { FileLocation.accessId eq accessId }.map { it[FileLocation.path] to it[FileLocation.userId] to it[FileLocation.isShared] }[0]
+                if (fileData.second)
+                    FileLocation.select { (FileLocation.path eq "${fileData.first.first}${fileName.substring(1)}") and (FileLocation.userId eq fileData.first.second) }.map { it[FileLocation.accessId] }[0]
+                else ""
             } catch (_: Exception) {
                 ""
             }
