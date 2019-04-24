@@ -261,13 +261,13 @@ class DatabaseController(dbFileLocation: String = "main.db") {
     /**
      * Returns accessId of file in directory
      */
-    fun getAccessIdOfDirectory(fileName: String, accessId: String): String {
+    fun getAccessIdOfDirectory(filename: String, accessId: String): String {
         return transaction {
             try {
                 val fileData =
                     FileLocation.select { FileLocation.accessId eq accessId }.map { it[FileLocation.path] to it[FileLocation.userId] to it[FileLocation.isShared] }[0]
                 if (fileData.second)
-                    FileLocation.select { (FileLocation.path eq "${fileData.first.first}${fileName.substring(1)}") and (FileLocation.userId eq fileData.first.second) }.map { it[FileLocation.accessId] }[0]
+                    FileLocation.select { (FileLocation.path eq "${fileData.first.first}${filename.substring(1)}") and (FileLocation.userId eq fileData.first.second) }.map { it[FileLocation.accessId] }[0]
                 else ""
             } catch (_: Exception) {
                 ""

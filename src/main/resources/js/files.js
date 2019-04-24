@@ -104,19 +104,19 @@ drop.addEventListener('drop', e => {
  * Set up listeners
  */
 function setListeners() {
-    if (isShared) {
+    if (isShared === "true") {
         const accessId = location.pathname === '/shared' ? location.search.split('=')[1] : undefined;
         document.querySelectorAll('[data-path], [data-href]').forEach(element => {
             element.addEventListener('click', () => {
                 const request = new XMLHttpRequest();
                 const formData = new FormData();
                 formData.append('accessId', accessId);
-                formData.append('fileName', element.getAttribute('data-path') || element.getAttribute('data-href'));
-                request.open('POST', '/shared', true);
+                formData.append('filename', element.getAttribute('data-path') || element.getAttribute('data-href'));
+                request.open('POST', '/share', true);
                 request.onload = () => {
                     if (request.status === 200 && request.readyState === 4) {
                         if (request.responseText)
-                            window.location = `/shared?id=${request.responseText}`;
+                            window.location = `/share?id=${request.responseText}`;
                         else alert('File not found!');
                     }
                 };
@@ -192,9 +192,9 @@ function setListeners() {
             e.stopPropagation();
             const request = new XMLHttpRequest();
             const parent = e.target.closest("tr");
-            const fileName = parent.getAttribute("data-href") || parent.getAttribute("data-path");
-            if (confirm(`Do you really want to delete: ${fileName}?`)) {
-                request.open("POST", `/delete/${path}/${fileName}`.clean(), true);
+            const filename = parent.getAttribute("data-href") || parent.getAttribute("data-path");
+            if (confirm(`Do you really want to delete: ${filename}?`)) {
+                request.open("POST", `/delete/${path}/${filename}`.clean(), true);
                 request.send();
                 parent.remove();
             } else console.log("File not deleted!")
@@ -221,10 +221,10 @@ function setListeners() {
             e.stopPropagation();
             const request = new XMLHttpRequest();
             const parent = e.target.closest("tr");
-            const fileName = parent.getAttribute("data-href") || parent.getAttribute("data-path");
-            const type = fileName.endsWith('/') ? 'dir' : 'file';
+            const filename = parent.getAttribute("data-href") || parent.getAttribute("data-path");
+            const type = filename.endsWith('/') ? 'dir' : 'file';
 
-            request.open("POST", `/share/${path}/${fileName}?type=${type}`.clean());
+            request.open("POST", `/share/${path}/${filename}?type=${type}`.clean());
             request.onload = () => {
                 if (request.readyState === 4) {
                     if (request.status === 200) {  // TODO: fix clipboard in Firefox

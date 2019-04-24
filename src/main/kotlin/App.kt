@@ -115,14 +115,14 @@ fun main() {
         post("/share/*", fileController::share, roles(Roles.USER))
 
         /**
+         * Shares file in directory
+         */
+        post("/share", fileController::handleSharedFile, roles(Roles.GUEST))
+
+        /**
          * Shows the shared file
          */
         get("/shared", fileController::renderShared, roles(Roles.GUEST))
-
-        /**
-         * Shares file in directory
-         */
-        post("/shared", fileController::handleSharedFile, roles(Roles.GUEST))
     }
 }
 

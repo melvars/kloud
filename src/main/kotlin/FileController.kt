@@ -237,9 +237,9 @@ class FileController {
     }
 
     fun handleSharedFile(ctx: Context) {
-        val fileName = ctx.formParam("fileName").toString()
+        val filename = ctx.formParam("filename").toString()
         val accessId = ctx.formParam("accessId").toString()
-        val returnAccessId = databaseController.getAccessIdOfDirectory(fileName, accessId)
+        val returnAccessId = databaseController.getAccessIdOfDirectory(filename, accessId)
         ctx.result(returnAccessId)
     }
 }
