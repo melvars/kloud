@@ -64,8 +64,8 @@ class DatabaseController(dbFileLocation: String = "main.db") {
      */
     object General : Table() {
         val id = integer("id").autoIncrement().primaryKey()
-        val initialUse = bool("initialUse").default(true).primaryKey()
-        val isSetup = bool("isSetup").default(false).primaryKey()
+        val initialUse = bool("initialUse").default(true)
+        val isSetup = bool("isSetup").default(false)
     }
 
     init {

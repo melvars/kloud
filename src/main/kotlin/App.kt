@@ -9,8 +9,6 @@ import io.javalin.rendering.*
 import io.javalin.rendering.template.TemplateUtil.model
 import io.javalin.security.*
 import io.javalin.security.SecurityUtil.roles
-import io.javalin.staticfiles.*
-import java.io.*
 import java.net.*
 import java.util.logging.*
 
@@ -22,7 +20,6 @@ private val log = Logger.getLogger("App.kt")
 
 fun main() {
     val app = Javalin.create().apply {
-        enableStaticFiles("${File(".").absolutePath}/src/main/resources/", Location.EXTERNAL)
         port(7000)
         accessManager { handler, ctx, permittedRoles -> roleManager(handler, ctx, permittedRoles) }
     }.start()
@@ -42,6 +39,30 @@ fun main() {
         before("/*") { ctx ->
             if (URI(ctx.url()).normalize().toString() != ctx.url()) ctx.redirect(URI(ctx.url()).normalize().toString())
         }
+
+        /**
+         * Renders the static resources (important for deployed jar files)
+         */
+        get(
+            "/css/*", { ctx ->
+                ctx.contentType("text/css")
+                ctx.result(Thread.currentThread().contextClassLoader.getResourceAsStream("css/" + ctx.splat(0)))
+            },
+            roles(Roles.GUEST)
+        )
+        get(
+            "/js/*", { ctx ->
+                ctx.contentType("text/js")
+                ctx.result(Thread.currentThread().contextClassLoader.getResourceAsStream("js/" + ctx.splat(0)))
+            },
+            roles(Roles.GUEST)
+        )
+        get(
+            "/fonts/*", { ctx ->
+                ctx.result(Thread.currentThread().contextClassLoader.getResourceAsStream("fonts/" + ctx.splat(0)))
+            },
+            roles(Roles.GUEST)
+        )
 
         /**
          * Main page

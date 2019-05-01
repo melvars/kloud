@@ -17,10 +17,17 @@
 - Supports Windows, MacOS, Linux and *BSD
 - Open source
 
+## Installation
+To install and run Kloud, you can either download the latest release on GitHub or use the "Development setup" instructions
+below to build an executable yourself.  
+After that you can easily start the server via `java -jar kloud-VERSION-all.jar`
+
 ## Development setup
-* Setup JVM Environment
+* Setup Java JDK and JRE Environment
+* Install Gradle
 * Clone repository
-* `./gradlew[.bat] run`
+* `gradle run`
+* For building, use: `gradle build`
 
 ## Help us with a small donation :)
 <p align="center">

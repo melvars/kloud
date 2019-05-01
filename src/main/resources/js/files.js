@@ -186,6 +186,7 @@ function setListeners() {
             })
         });
     }
+
     // deletion button
     document.querySelectorAll(".delete").forEach(element => {
         element.addEventListener("click", e => {
