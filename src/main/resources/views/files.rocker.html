@@ -43,9 +43,15 @@
             <th data-asc="true">Name</th>
             <th data-asc="true">Size</th>
             <th data-asc="true">Last modified</th>
+            @if (!isShared) {
             <th data-asc="true">Share</th>
             <th data-asc="true">Download</th>
             <th data-asc="true">Delete</th>
+            } else {
+            <th></th>
+            <th></th>
+            <th></th>
+            }
         </tr>
         <tr data-href="../">
             <td></td>
@@ -93,10 +99,12 @@
                 @fileArray[2]
             </td>
 
+            @if (!isShared) {
             <td>
                 <button class="share"><i class="icon ion-md-share"></i></button>
             </td>
 
+            <!-- TODO: Fix download of shared files -->
             <td>
                 <button class="downloadButton">
                     <a class="download" download="@fileArray[0]" href="@fileArray[0]?raw"><i class="icon ion-md-download"></i></a>
@@ -106,6 +114,11 @@
             <td>
                 <button class="delete"><i class="icon ion-md-trash"></i></button>
             </td>
+            } else {
+            <td></td>
+            <td></td>
+            <td></td>
+            }
         </tr>
         }
         </tbody>

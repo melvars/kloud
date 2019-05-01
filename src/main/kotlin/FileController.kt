@@ -2,7 +2,6 @@ package space.anity
 
 import io.javalin.*
 import io.javalin.core.util.*
-import io.javalin.rendering.template.*
 import io.javalin.rendering.template.TemplateUtil.model
 import java.io.*
 import java.nio.charset.*
@@ -20,53 +19,31 @@ class FileController {
         try {
             val usersFileHome = "$fileHome/${userHandler.getVerifiedUserId(ctx)}"
             val firstParam = ctx.splat(0) ?: ""
+            val fileLocation = "$usersFileHome/$firstParam"
             File(usersFileHome).mkdirs()
             when {
-                ctx.queryParam("raw") != null -> ctx.result(FileInputStream(File("$usersFileHome/$firstParam")))
-                File("$usersFileHome/$firstParam").isDirectory -> {
+                ctx.queryParam("raw") != null -> ctx.result(FileInputStream(File(fileLocation)))
+                File(fileLocation).isDirectory -> {
                     val files = ArrayList<Array<String>>()
                     Files.list(Paths.get("$usersFileHome/$firstParam/")).forEach {
                         val filename = it.toString()
                             .drop(usersFileHome.length + (if (firstParam.isNotEmpty()) firstParam.length + 2 else 1))
                         val filePath = "$usersFileHome${it.toString().drop(usersFileHome.length)}"
-                        val file = File(filePath)
-                        val fileSize = if (file.isDirectory) getDirectorySize(file) else file.length()
-                        files.add(
-                            // TODO: Clean up file array responses
-                            arrayOf(
-                                if (file.isDirectory) "$filename/" else filename,
-                                humanReadableBytes(fileSize),
-                                SimpleDateFormat("MM/dd/yyyy HH:mm:ss").format(file.lastModified()).toString(),
-                                if (file.isDirectory) "true" else isHumanReadable(file).toString(),
-                                file.isDirectory.toString(),
-                                fileSize.toString(), // unformatted file size
-                                file.lastModified().toString() // unformatted last modified date
-                            )
-                        )
+                        files.add(addToFileListing(filePath, filename))
                     }
                     files.sortWith(compareBy { it.first() })
                     ctx.render(
-                        "files.rocker.html", TemplateUtil.model(
+                        "files.rocker.html", model(
                             "files", files,
                             "path", (if (firstParam.firstOrNull() == '/') firstParam.drop(1) else firstParam),
                             "isShared", false
                         )
                     )
                 }
-                isHumanReadable(File("$usersFileHome/$firstParam")) ->
-                    ctx.render(
-                        "fileview.rocker.html", TemplateUtil.model(
-                            "content", Files.readAllLines(
-                                Paths.get("$usersFileHome/$firstParam"),
-                                Charsets.UTF_8
-                            ).joinToString(separator = "\n"),
-                            "filename", File("$usersFileHome/$firstParam").name,
-                            "extension", File("$usersFileHome/$firstParam").extension
-                        )
-                    )
+                isHumanReadable(File(fileLocation)) -> handleHumanReadableFile(fileLocation, ctx)
                 else -> {
-                    ctx.contentType(Files.probeContentType(Paths.get("$usersFileHome/$firstParam")))
-                    ctx.result(FileInputStream(File("$usersFileHome/$firstParam")))
+                    ctx.contentType(Files.probeContentType(Paths.get(fileLocation)))
+                    ctx.result(FileInputStream(File(fileLocation)))
                 }
             }
         } catch (err: Exception) {
@@ -180,53 +157,29 @@ class FileController {
     fun renderShared(ctx: Context) {
         val accessId = ctx.queryParam("id").toString()
         val sharedFileData = databaseController.getSharedFile(accessId)
-        if (sharedFileData.userId > 0 && sharedFileData.fileLocation.isNotEmpty()) {
-            val sharedFileLocation = "$fileHome/${sharedFileData.userId}/${sharedFileData.fileLocation}"
+        val fileLocation = sharedFileData.fileLocation
+        if (sharedFileData.userId > 0 && fileLocation.isNotEmpty()) {
+            val sharedFileLocation = "$fileHome/${sharedFileData.userId}/$fileLocation"
             if (!sharedFileData.isDirectory) {
-                if (isHumanReadable(File(sharedFileLocation))) {
-                    ctx.render(
-                        "fileview.rocker.html", model(
-                            "content", Files.readAllLines(
-                                Paths.get(sharedFileLocation),
-                                Charsets.UTF_8
-                            ).joinToString(separator = "\n"),
-                            "filename", File(sharedFileLocation).name,
-                            "extension", File(sharedFileLocation).extension
-                        )
-                    )
-                } else {
+                if (isHumanReadable(File(sharedFileLocation))) handleHumanReadableFile(sharedFileLocation, ctx)
+                else {
                     // TODO: Fix name of downloaded file ("shared")
                     ctx.contentType(Files.probeContentType(Paths.get(sharedFileLocation)))
                     ctx.result(FileInputStream(File(sharedFileLocation)))
                 }
             } else {
-                // TODO: Combine the two file-crawling-render functions
                 val files = ArrayList<Array<String>>()
                 Files.list(Paths.get(sharedFileLocation)).forEach {
                     val filename = it.toString()
                         .drop(sharedFileLocation.length - 1)
                     val filePath = "$sharedFileLocation$filename"
-                    val file = File(filePath)
-                    val fileSize = if (file.isDirectory) getDirectorySize(file) else file.length()
-                    files.add(
-                        // TODO: Clean up file array responses
-                        arrayOf(
-                            if (file.isDirectory) "$filename/" else filename,
-                            humanReadableBytes(fileSize),
-                            SimpleDateFormat("MM/dd/yyyy HH:mm:ss").format(file.lastModified()).toString(),
-                            if (file.isDirectory) "true" else isHumanReadable(file).toString(),
-                            file.isDirectory.toString(),
-                            fileSize.toString(), // unformatted file size
-                            file.lastModified().toString() // unformatted last modified date
-                        )
-                    )
+                    files.add(addToFileListing(filePath, filename))
                 }
                 files.sortWith(compareBy { it.first() })
                 ctx.render(
-                    "files.rocker.html", TemplateUtil.model(
+                    "files.rocker.html", model(
                         "files", files,
-                        "path",
-                        (if (sharedFileData.fileLocation.firstOrNull() == '/') sharedFileData.fileLocation.drop(1) else sharedFileData.fileLocation),
+                        "path", (if (fileLocation.firstOrNull() == '/') fileLocation.drop(1) else fileLocation),
                         "isShared", true
                     )
                 )
@@ -236,6 +189,40 @@ class FileController {
         }
     }
 
+    /**
+     * Adds a file to the file array used in the file listing view
+     */
+    private fun addToFileListing(filePath: String, filename: String): Array<String> {
+        val file = File(filePath)
+        val fileSize = if (file.isDirectory) getDirectorySize(file) else file.length()
+        return arrayOf(
+            // TODO: Clean up array responses
+            if (file.isDirectory) "$filename/" else filename,
+            humanReadableBytes(fileSize),
+            SimpleDateFormat("MM/dd/yyyy HH:mm:ss").format(file.lastModified()).toString(),
+            if (file.isDirectory) "true" else isHumanReadable(file).toString(),
+            file.isDirectory.toString(),
+            fileSize.toString(), // unformatted file size
+            file.lastModified().toString() // unformatted last modified date
+        )
+    }
+
+    private fun handleHumanReadableFile(filePath: String, ctx: Context) {
+        ctx.render(
+            "fileview.rocker.html", model(
+                "content", Files.readAllLines(
+                    Paths.get(filePath),
+                    Charsets.UTF_8
+                ).joinToString(separator = "\n"),
+                "filename", File(filePath).name,
+                "extension", File(filePath).extension
+            )
+        )
+    }
+
+    /**
+     * Returns the access id of a file
+     */
     fun handleSharedFile(ctx: Context) {
         val filename = ctx.formParam("filename").toString()
         val accessId = ctx.formParam("accessId").toString()

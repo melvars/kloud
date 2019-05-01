@@ -116,7 +116,7 @@ function setListeners() {
                 request.onload = () => {
                     if (request.status === 200 && request.readyState === 4) {
                         if (request.responseText)
-                            window.location = `/share?id=${request.responseText}`;
+                            window.location = `/shared?id=${request.responseText}`;
                         else alert('File not found!');
                     }
                 };
