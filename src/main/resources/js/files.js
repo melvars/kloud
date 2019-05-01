@@ -108,19 +108,24 @@ function setListeners() {
         const accessId = location.pathname === '/shared' ? location.search.split('=')[1] : undefined;
         document.querySelectorAll('[data-path], [data-href]').forEach(element => {
             element.addEventListener('click', () => {
-                const request = new XMLHttpRequest();
-                const formData = new FormData();
-                formData.append('accessId', accessId);
-                formData.append('filename', element.getAttribute('data-path') || element.getAttribute('data-href'));
-                request.open('POST', '/share', true);
-                request.onload = () => {
-                    if (request.status === 200 && request.readyState === 4) {
-                        if (request.responseText)
-                            window.location = `/shared?id=${request.responseText}`;
-                        else alert('File not found!');
-                    }
-                };
-                request.send(formData)
+                const filename = '/' + (element.getAttribute('data-path') || element.getAttribute('data-href'));
+                if (filename !== '/../') {
+                    const request = new XMLHttpRequest();
+                    const formData = new FormData();
+                    formData.append('accessId', accessId);
+                    formData.append('filename', filename);
+                    request.open('POST', '/share', true);
+                    request.onload = () => {
+                        if (request.status === 200 && request.readyState === 4) {
+                            if (request.responseText)
+                                window.location = `/shared?id=${request.responseText}`;
+                            else alert('File not found!');
+                        }
+                    };
+                    request.send(formData)
+                } else {
+                    window.location = '../'
+                }
             });
         });
     } else {

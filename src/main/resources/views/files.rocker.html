@@ -18,11 +18,15 @@
 <div class="drop" id="drop">
     <h2 class="navigation">
         <i class="icon ion-md-home"></i>
+        @if (!isShared) {
         @for (int i = 0; i < path.split("/").length - 1; i++) {
         <a href='@(new String(new char[path.split("/").length - i - 1]).replace("\0", "../"))'>@path.split("/")[i]</a>
         <i class='icon ion-ios-arrow-forward'></i>
         }
         @if (path.split("/").length > 0) {
+        <a href="">@(path.split("/")[path.split("/").length - 1])</a>
+        }
+        } else {
         <a href="">@(path.split("/")[path.split("/").length - 1])</a>
         }
     </h2>

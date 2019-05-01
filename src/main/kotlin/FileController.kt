@@ -152,11 +152,10 @@ class FileController {
     }
 
     /**
-     * Renders the shared file
+     * Renders a shared file
      */
     fun renderShared(ctx: Context) {
-        val accessId = ctx.queryParam("id").toString()
-        val sharedFileData = databaseController.getSharedFile(accessId)
+        val sharedFileData = databaseController.getSharedFile(ctx.queryParam("id").toString())
         val fileLocation = sharedFileData.fileLocation
         if (sharedFileData.userId > 0 && fileLocation.isNotEmpty()) {
             val sharedFileLocation = "$fileHome/${sharedFileData.userId}/$fileLocation"
@@ -171,7 +170,7 @@ class FileController {
                 val files = ArrayList<Array<String>>()
                 Files.list(Paths.get(sharedFileLocation)).forEach {
                     val filename = it.toString()
-                        .drop(sharedFileLocation.length - 1)
+                        .drop(sharedFileLocation.length)
                     val filePath = "$sharedFileLocation$filename"
                     files.add(addToFileListing(filePath, filename))
                 }
@@ -207,6 +206,9 @@ class FileController {
         )
     }
 
+    /**
+     * Handles the rendering of human readable files
+     */
     private fun handleHumanReadableFile(filePath: String, ctx: Context) {
         ctx.render(
             "fileview.rocker.html", model(
@@ -226,7 +228,6 @@ class FileController {
     fun handleSharedFile(ctx: Context) {
         val filename = ctx.formParam("filename").toString()
         val accessId = ctx.formParam("accessId").toString()
-        val returnAccessId = databaseController.getAccessIdOfDirectory(filename, accessId)
-        ctx.result(returnAccessId)
+        ctx.result(databaseController.getAccessIdOfDirectory(filename, accessId))
     }
 }
