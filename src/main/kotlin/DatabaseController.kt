@@ -1,6 +1,7 @@
 package space.anity
 
 import at.favre.lib.crypto.bcrypt.*
+import io.javalin.*
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.*
 import org.joda.time.*
@@ -43,6 +44,14 @@ class DatabaseController(dbFileLocation: String = "main.db") {
     }
 
     /**
+     * Database table indexing the soon-to-be registered users by username
+     */
+    object UserRegistration : Table() {
+        val id = integer("id").autoIncrement().primaryKey()
+        val username = varchar("username", 24).uniqueIndex()
+    }
+
+    /**
      * Database table declaring available roles
      */
     object RolesData : Table() {
@@ -78,6 +87,7 @@ class DatabaseController(dbFileLocation: String = "main.db") {
                 FileLocation,
                 UserData,
                 UserRoles,
+                UserRegistration,
                 RolesData,
                 LoginAttempts,
                 General
@@ -106,6 +116,40 @@ class DatabaseController(dbFileLocation: String = "main.db") {
                 log.warning("User already exists!")
                 false
             }
+        }
+    }
+
+    /**
+     * Checks whether the user is allowed to register
+     * TODO: Verify registration via token
+     */
+    fun isUserRegistrationValid(usernameString: String): Boolean {
+        return transaction {
+            try {
+                if (UserData.select { UserData.username eq usernameString }.empty()) {
+                    val username = UserRegistration.select { UserRegistration.username eq usernameString }.map { it[UserRegistration.username] }[0]
+                    username == usernameString
+                } else false
+            } catch (err: Exception) {
+                false
+            }
+        }
+    }
+
+    /**
+     * Adds a user to the registration table
+     */
+    fun indexUserRegistration(ctx: Context) {
+        transaction {
+            UserRegistration.insert {
+                it[username] = ctx.queryParam("username", "").toString()
+            }
+        }
+    }
+
+    fun removeRegistrationIndex(usernameString: String) {
+        transaction {
+            UserRegistration.deleteWhere { UserRegistration.username eq usernameString }
         }
     }
 

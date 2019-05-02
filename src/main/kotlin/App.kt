@@ -81,7 +81,7 @@ fun main() {
         /**
          * Renders the login page
          */
-        get("/login", { ctx ->
+        get("/user/login", { ctx ->
             if (userHandler.getVerifiedUserId(ctx) > 0 || !databaseController.isSetup()) ctx.redirect("/")
             else ctx.render(
                 "login.rocker.html",
@@ -92,18 +92,33 @@ fun main() {
         /**
          * Endpoint for user authentication
          */
-        post("/login", userHandler::login, roles(Roles.GUEST))
+        post("/user/login", userHandler::login, roles(Roles.GUEST))
 
         /**
          * Logs the user out
          */
-        get("/logout", userHandler::logout, roles(Roles.USER))
+        get("/user/logout", userHandler::logout, roles(Roles.USER))
+
+        /**
+         * Renders the registration page
+         */
+        get("/user/register", userHandler::renderRegistration, roles(Roles.GUEST))  // use setup page with additional parameter?
+
+        /**
+         * Registers new user
+         */
+        post("/user/register", userHandler::register, roles(Roles.GUEST))
+
+        /**
+         * Adds part of a new user (username) to database
+         */
+        get("/user/add", databaseController::indexUserRegistration, roles(Roles.ADMIN))  // TODO: Create post request with admin interface
 
         /**
          * Renders the setup page (only on initial use)
          */
         get("/setup", { ctx ->
-            if (databaseController.isSetup()) ctx.redirect("/login")
+            if (databaseController.isSetup()) ctx.redirect("/user/login")
             else ctx.render(
                 "setup.rocker.html",
                 model("message", "")
@@ -157,7 +172,7 @@ fun roleManager(handler: Handler, ctx: Context, permittedRoles: Set<Role>) {
             ctx
         )
         //ctx.host()!!.contains("localhost") -> handler.handle(ctx) // DEBUG
-        else -> ctx.status(401).redirect("/login")
+        else -> ctx.status(401).redirect("/user/login")
     }
 }
 

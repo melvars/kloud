@@ -7,11 +7,12 @@
 
     <div>
         @if(username.length() > 0) {
-        <a class="button" href="/logout">Logout</a>
+        <!-- TODO: Fix logout button? -->
+        <a class="button" href="/user/logout">Logout</a>
         } else if (!(new DatabaseController()).isSetup()) {
         <a class="button" href="/setup">Setup</a>
         } else {
-        <a class="button" href="/login">Login</a>
+        <a class="button" href="/user/login">Login</a>
         }
 
         <a class="button" href="/files/">Files</a>

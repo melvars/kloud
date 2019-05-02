@@ -1,7 +1,7 @@
 package space.anity
 
 import io.javalin.*
-import io.javalin.rendering.template.*
+import io.javalin.rendering.template.TemplateUtil.model
 import org.joda.time.*
 import java.util.logging.*
 import kotlin.math.*
@@ -41,7 +41,7 @@ class UserHandler {
                 databaseController.loginAttempt(DateTime(), requestIp)
                 ctx.render(
                     "login.rocker.html",
-                    TemplateUtil.model(
+                    model(
                         "message",
                         "Login failed!",
                         "counter", if (nextThreshold / 60 > 60) 3600 else nextThreshold.toInt()
@@ -52,7 +52,7 @@ class UserHandler {
             databaseController.loginAttempt(DateTime(), requestIp)
             ctx.render(
                 "login.rocker.html",
-                TemplateUtil.model(
+                model(
                     "message",
                     "Too many request.",
                     "counter", if (nextThreshold / 60 > 60) 3600 else nextThreshold.toInt()
@@ -80,17 +80,17 @@ class UserHandler {
             if (password == verifyPassword) {
                 if (databaseController.createUser(username, password, "ADMIN")) {
                     databaseController.toggleSetup()
-                    ctx.redirect("/login")
+                    ctx.redirect("/user/login")
                 } else ctx.status(400).render(
                     "setup.rocker.html",
-                    TemplateUtil.model("message", "User already exists!")
+                    model("message", "User already exists!")
                 )
             } else ctx.status(400).render(
                 "setup.rocker.html",
-                TemplateUtil.model("message", "Passwords do not match!")
+                model("message", "Passwords do not match!")
             )
         } catch (_: Exception) {
-            ctx.status(400).render("setup.rocker.html", TemplateUtil.model("message", "An error occurred!"))
+            ctx.status(400).render("setup.rocker.html", model("message", "An error occurred!"))
         }
     }
 
@@ -102,5 +102,44 @@ class UserHandler {
             == ctx.cookieStore("userId") ?: "userId"
         ) ctx.cookieStore("userId")
         else -1
+    }
+
+    /**
+     * Renders the registration page
+     */
+    fun renderRegistration(ctx: Context) {
+        val username = ctx.queryParam("username", "")
+        if (username.isNullOrEmpty())
+            ctx.status(403).result("Please provide a valid username!")
+        else {
+            if (databaseController.isUserRegistrationValid(username)) ctx.render(
+                "register.rocker.html",
+                model(
+                    "username", username,
+                    "message", ""
+                )
+            ) else ctx.redirect("/user/login")
+        }
+    }
+
+    /**
+     * Registers a new user
+     */
+    fun register(ctx: Context) {
+        try {
+            val username = ctx.formParam("username").toString()
+            val password = ctx.formParam("password").toString()
+            val verifyPassword = ctx.formParam("verifyPassword").toString()
+
+            if (password == verifyPassword) {
+                if (databaseController.isUserRegistrationValid(username)) {
+                    databaseController.createUser(username, password, "USER")
+                    databaseController.removeRegistrationIndex(username)
+                    ctx.redirect("/login")
+                } else ctx.status(401).result("This user is not authorized to register.")
+            } else ctx.status(400).result("The passwords don't match!")
+        } catch (_: Exception) {
+            ctx.status(400).result("An exception occured.")
+        }
     }
 }
