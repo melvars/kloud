@@ -11,6 +11,7 @@ import io.javalin.security.*
 import io.javalin.security.SecurityUtil.roles
 import java.net.*
 import java.util.logging.*
+import kotlin.system.*
 
 const val fileHome = "files"
 val databaseController = DatabaseController()
@@ -18,11 +19,8 @@ val userHandler = UserHandler()
 val fileController = FileController()
 private val log = Logger.getLogger("App.kt")
 
-fun main() {
-    val app = Javalin.create().apply {
-        port(7000)
-        accessManager { handler, ctx, permittedRoles -> roleManager(handler, ctx, permittedRoles) }
-    }.start()
+fun main(args: Array<String>) {
+    val app = startServer(args)
 
     // Set up templating
     RockerRuntime.getInstance().isReloading = false
@@ -171,9 +169,45 @@ fun roleManager(handler: Handler, ctx: Context, permittedRoles: Set<Role>) {
         databaseController.getRoles(userHandler.getVerifiedUserId(ctx)).any { it in permittedRoles } -> handler.handle(
             ctx
         )
-        //ctx.host()!!.contains("localhost") -> handler.handle(ctx) // DEBUG
+        // ctx.host()!!.contains("localhost") -> handler.handle(ctx) // DEBUG
         else -> ctx.status(401).redirect("/user/login")
     }
+}
+
+/**
+ * Starts the server and parses the command line arguments
+ */
+fun startServer(args: Array<String>): Javalin {
+    var runServer = true
+    var port = 7000
+
+    args.forEachIndexed { index, element ->
+        run {
+            val wantsPort = element.startsWith("-p") || element.startsWith("--port")
+            val wantsHelp = element.startsWith("-h") || element.startsWith("--help")
+
+            if (wantsPort) {
+                val portArgument = args[index + 1].toInt()
+                if (portArgument in 1..65535) port = portArgument
+            } else if (wantsHelp) {
+                runServer = false
+                log.info("Help:\nUse -p or --port to specify a port.")
+            }
+        }
+    }
+
+    return if (runServer) {
+        try {
+            Javalin.create().apply {
+                port(port)
+                accessManager { handler, ctx, permittedRoles -> roleManager(handler, ctx, permittedRoles) }
+                disableStartupBanner()
+            }.start()
+        } catch (_: Exception) {
+            log.warning("Port already in use!")
+            exitProcess(1)
+        }
+    } else exitProcess(1)
 }
 
 /**

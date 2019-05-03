@@ -65,7 +65,7 @@ class UserHandler {
      * Logs the user out of the system
      */
     fun logout(ctx: Context) {
-        ctx.clearCookieStore()
+        ctx.clearCookieStore() // TODO: Fix cookie clearing after logout
         ctx.redirect("/")
     }
 
@@ -135,7 +135,7 @@ class UserHandler {
                 if (databaseController.isUserRegistrationValid(username)) {
                     databaseController.createUser(username, password, "USER")
                     databaseController.removeRegistrationIndex(username)
-                    ctx.redirect("/login")
+                    ctx.redirect("/user/login")
                 } else ctx.status(401).result("This user is not authorized to register.")
             } else ctx.status(400).result("The passwords don't match!")
         } catch (_: Exception) {
