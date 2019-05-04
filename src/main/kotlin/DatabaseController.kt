@@ -17,7 +17,7 @@ class DatabaseController(dbFileLocation: String = "main.db") {
      */
     object FileLocation : Table() {
         val id = integer("id").autoIncrement().primaryKey()
-        val path = text("path").uniqueIndex() // TODO: Don't use uniqueIndex() or double-check this with userId
+        val path = text("path")
         val isDirectory = bool("isDirectory").default(false)
         val userId = integer("userId").references(UserData.id)
         val accessId = varchar("accessId", 64).uniqueIndex()
@@ -112,7 +112,7 @@ class DatabaseController(dbFileLocation: String = "main.db") {
                     roles[roleId] = RolesData.select { RolesData.role eq roleString }.map { it[RolesData.id] }[0]
                 }
                 true
-            } catch (_: org.jetbrains.exposed.exceptions.ExposedSQLException) {
+            } catch (_: Exception) {
                 log.warning("User already exists!")
                 false
             }
@@ -130,7 +130,7 @@ class DatabaseController(dbFileLocation: String = "main.db") {
                     val username = UserRegistration.select { UserRegistration.username eq usernameString }.map { it[UserRegistration.username] }[0]
                     username == usernameString
                 } else false
-            } catch (err: Exception) {
+            } catch (_: Exception) {
                 false
             }
         }
@@ -147,6 +147,9 @@ class DatabaseController(dbFileLocation: String = "main.db") {
         }
     }
 
+    /**
+     * Removes the registration index of [usernameString]
+     */
     fun removeRegistrationIndex(usernameString: String) {
         transaction {
             UserRegistration.deleteWhere { UserRegistration.username eq usernameString }
@@ -258,14 +261,19 @@ class DatabaseController(dbFileLocation: String = "main.db") {
     fun addFile(fileLocation: String, usersId: Int, isDirectoryBool: Boolean = false): Boolean {
         return transaction {
             try {
-                FileLocation.insert {
-                    it[path] = fileLocation
-                    it[userId] = usersId
-                    it[accessId] = generateRandomString()
-                    it[isDirectory] = isDirectoryBool
+                if (FileLocation.select { (FileLocation.path eq fileLocation) and (FileLocation.userId eq usersId) }.empty()) {
+                    FileLocation.insert {
+                        it[path] = fileLocation
+                        it[userId] = usersId
+                        it[accessId] = generateRandomString()
+                        it[isDirectory] = isDirectoryBool
+                    }
+                    true
+                } else {
+                    if (!isDirectoryBool) log.warning("File already exists!")
+                    false
                 }
-                true
-            } catch (err: org.jetbrains.exposed.exceptions.ExposedSQLException) {
+            } catch (_: Exception) {
                 if (!isDirectoryBool) log.warning("File already exists!")
                 false
             }
@@ -280,7 +288,7 @@ class DatabaseController(dbFileLocation: String = "main.db") {
             try {
                 // TODO: Think of new solution for directory deleting (instead of wildcards)
                 FileLocation.deleteWhere { (FileLocation.path like "$fileLocation%") and (FileLocation.userId eq userId) }
-            } catch (_: org.jetbrains.exposed.exceptions.ExposedSQLException) {
+            } catch (_: Exception) {
                 log.warning("File does not exist!")
             }
         }
