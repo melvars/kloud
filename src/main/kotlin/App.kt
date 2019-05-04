@@ -50,7 +50,7 @@ fun main(args: Array<String>) {
         )
         get(
             "/js/*", { ctx ->
-                ctx.contentType("text/js")
+                ctx.contentType("text/javascript")
                 ctx.result(Thread.currentThread().contextClassLoader.getResourceAsStream("js/" + ctx.splat(0)))
             },
             roles(Roles.GUEST, Roles.USER)

@@ -27,9 +27,14 @@ drop.addEventListener('drop', e => {
 
         const row = document.getElementById("table").insertRow(-1);
         row.setAttribute("data-href", file.name);
-        // TODO: Differentiate between file and directory upload in frontend
-        row.insertCell(0).innerHTML = "<td><i class='icon ion-md-document'></i></td>";
-        row.insertCell(1).innerHTML = file.name;
+
+        if (item.isDirectory) {
+            row.insertCell(0).innerHTML = "<td><i class='icon ion-md-folder'></i></td>";
+            row.insertCell(1).innerHTML = file.name + "/";
+        } else {
+            row.insertCell(0).innerHTML = "<td><i class='icon ion-md-document'></i></td>";
+            row.insertCell(1).innerHTML = file.name;
+        }
         row.insertCell(2).innerHTML = bytesToSize(file.size);
         row.insertCell(3).innerHTML = `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
         row.insertCell(4).innerHTML = "<td><button class='share'><i class='icon ion-md-share'></i></button></td>";
