@@ -65,27 +65,17 @@ fun main(args: Array<String>) {
         /**
          * Main page
          */
-        get(
-            "/",
-            { ctx ->
-                ctx.render(
-                    "index.rocker.html",
-                    model("username", databaseController.getUsername(userHandler.getVerifiedUserId(ctx)))
-                )
-            },
-            roles(Roles.GUEST)
-        )
+        get("/", { ctx ->
+            ctx.render(
+                "index.rocker.html",
+                model("username", databaseController.getUsername(userHandler.getVerifiedUserId(ctx)))
+            )
+        }, roles(Roles.GUEST))
 
         /**
          * Renders the login page
          */
-        get("/user/login", { ctx ->
-            if (userHandler.getVerifiedUserId(ctx) > 0 || !databaseController.isSetup()) ctx.redirect("/")
-            else ctx.render(
-                "login.rocker.html",
-                model("message", "", "counter", 0)
-            )
-        }, roles(Roles.GUEST))
+        get("/user/login", userHandler::renderLogin, roles(Roles.GUEST))
 
         /**
          * Endpoint for user authentication
@@ -100,7 +90,7 @@ fun main(args: Array<String>) {
         /**
          * Renders the registration page
          */
-        get("/user/register", userHandler::renderRegistration, roles(Roles.GUEST))  // use setup page with additional parameter?
+        get("/user/register", userHandler::renderRegistration, roles(Roles.GUEST))
 
         /**
          * Registers new user
@@ -110,18 +100,16 @@ fun main(args: Array<String>) {
         /**
          * Adds part of a new user (username) to database
          */
-        get("/user/add", databaseController::indexUserRegistration, roles(Roles.ADMIN))  // TODO: Create post request with admin interface
+        get(
+            "/user/add",
+            databaseController::indexUserRegistration,
+            roles(Roles.ADMIN)
+        )  // TODO: Create post request with admin interface
 
         /**
          * Renders the setup page (only on initial use)
          */
-        get("/setup", { ctx ->
-            if (databaseController.isSetup()) ctx.redirect("/user/login")
-            else ctx.render(
-                "setup.rocker.html",
-                model("message", "")
-            )
-        }, roles(Roles.GUEST))
+        get("/setup", userHandler::renderSetup, roles(Roles.GUEST))
 
         /**
          * Endpoint for setup (only on initial use)

@@ -127,8 +127,7 @@ class DatabaseController(dbFileLocation: String = "main.db") {
         return transaction {
             try {
                 if (UserData.select { UserData.username eq usernameString }.empty()) {
-                    val username = UserRegistration.select { UserRegistration.username eq usernameString }.map { it[UserRegistration.username] }[0]
-                    username == usernameString
+                    usernameString == UserRegistration.select { UserRegistration.username eq usernameString }.map { it[UserRegistration.username] }[0]
                 } else false
             } catch (_: Exception) {
                 false
@@ -317,9 +316,13 @@ class DatabaseController(dbFileLocation: String = "main.db") {
         return transaction {
             try {
                 val fileData =
-                    FileLocation.select { FileLocation.accessId eq accessId }.map { it[FileLocation.path] to it[FileLocation.userId] to it[FileLocation.isShared] }[0]
+                    FileLocation.select {
+                        FileLocation.accessId eq accessId
+                    }.map { it[FileLocation.path] to it[FileLocation.userId] to it[FileLocation.isShared] }[0]
                 if (fileData.second)
-                    FileLocation.select { (FileLocation.path eq "${fileData.first.first}${filename.substring(1)}") and (FileLocation.userId eq fileData.first.second) }.map { it[FileLocation.accessId] }[0]
+                    FileLocation.select {
+                        (FileLocation.path eq "${fileData.first.first}${filename.substring(1)}") and (FileLocation.userId eq fileData.first.second)
+                    }.map { it[FileLocation.accessId] }[0]
                 else ""
             } catch (_: Exception) {
                 ""

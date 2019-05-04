@@ -8,6 +8,15 @@ import kotlin.math.*
 
 class UserHandler {
     private val log = Logger.getLogger(this.javaClass.name)
+
+    /**
+     * Renders the login page
+     */
+    fun renderLogin(ctx: Context) {
+        if (userHandler.getVerifiedUserId(ctx) > 0 || !databaseController.isSetup()) ctx.redirect("/")
+        else ctx.render("login.rocker.html", model("message", "", "counter", 0))
+    }
+
     /**
      * Checks and verifies users credentials and logs the user in
      */
@@ -20,10 +29,11 @@ class UserHandler {
 
         val loginAttempts = databaseController.getLoginAttempts(requestIp)
         val lastAttemptDifference =
-            if (loginAttempts.isEmpty())
-                -1
-            else Interval(loginAttempts[loginAttempts.indexOfLast { true }].first.toInstant(), Instant()).toDuration()
-                .standardSeconds.toInt()
+            if (loginAttempts.isEmpty()) -1
+            else Interval(
+                loginAttempts[loginAttempts.indexOfLast { true }].first.toInstant(),
+                Instant()
+            ).toDuration().standardSeconds.toInt()
 
         var lastHourAttempts = 0
         loginAttempts.forEach {
@@ -71,6 +81,14 @@ class UserHandler {
     }
 
     /**
+     * Renders the setup page
+     */
+    fun renderSetup(ctx: Context) {
+        if (databaseController.isSetup()) ctx.redirect("/user/login")
+        else ctx.render("setup.rocker.html", model("message", ""))
+    }
+
+    /**
      * Sets up the general settings and admin credentials
      */
     fun setup(ctx: Context) {
@@ -82,27 +100,11 @@ class UserHandler {
                 if (databaseController.createUser(username, password, "ADMIN")) {
                     databaseController.toggleSetup()
                     ctx.redirect("/user/login")
-                } else ctx.status(400).render(
-                    "setup.rocker.html",
-                    model("message", "User already exists!")
-                )
-            } else ctx.status(400).render(
-                "setup.rocker.html",
-                model("message", "Passwords do not match!")
-            )
+                } else ctx.status(400).render("setup.rocker.html", model("message", "User already exists!"))
+            } else ctx.status(400).render("setup.rocker.html", model("message", "Passwords do not match!"))
         } catch (_: Exception) {
             ctx.status(400).render("setup.rocker.html", model("message", "An error occurred!"))
         }
-    }
-
-    /**
-     * Gets the username and verifies its identity
-     */
-    fun getVerifiedUserId(ctx: Context): Int {
-        return if (databaseController.getUserIdByVerificationId(ctx.cookieStore("verification") ?: "verification")
-            == ctx.cookieStore("userId") ?: "userId"
-        ) ctx.cookieStore("userId")
-        else -1
     }
 
     /**
@@ -110,16 +112,11 @@ class UserHandler {
      */
     fun renderRegistration(ctx: Context) {
         val username = ctx.queryParam("username", "")
-        if (username.isNullOrEmpty())
-            ctx.status(403).result("Please provide a valid username!")
+        if (username.isNullOrEmpty()) ctx.status(403).result("Please provide a valid username!")
         else {
-            if (databaseController.isUserRegistrationValid(username)) ctx.render(
-                "register.rocker.html",
-                model(
-                    "username", username,
-                    "message", ""
-                )
-            ) else ctx.redirect("/user/login")
+            if (databaseController.isUserRegistrationValid(username))
+                ctx.render("register.rocker.html", model("username", username, "message", ""))
+            else ctx.redirect("/user/login")
         }
     }
 
@@ -142,5 +139,15 @@ class UserHandler {
         } catch (_: Exception) {
             ctx.status(400).result("An exception occured.")
         }
+    }
+
+    /**
+     * Gets the username and verifies its identity
+     */
+    fun getVerifiedUserId(ctx: Context): Int {
+        return if (databaseController.getUserIdByVerificationId(ctx.cookieStore("verification") ?: "verification")
+            == ctx.cookieStore("userId") ?: "userId"
+        ) ctx.cookieStore("userId")
+        else -1
     }
 }
