@@ -49,6 +49,7 @@ class DatabaseController(dbFileLocation: String = "main.db") {
     object UserRegistration : Table() {
         val id = integer("id").autoIncrement().primaryKey()
         val username = varchar("username", 24).uniqueIndex()
+        val token = varchar("token", 64).uniqueIndex()
     }
 
     /**
@@ -121,12 +122,13 @@ class DatabaseController(dbFileLocation: String = "main.db") {
 
     /**
      * Checks whether the user is allowed to register
-     * TODO: Verify registration via token
      */
-    fun isUserRegistrationValid(usernameString: String): Boolean {
+    fun isUserRegistrationValid(usernameString: String, tokenString: String): Boolean {
         return transaction {
             try {
-                if (UserData.select { UserData.username eq usernameString }.empty()) {
+                if (UserData.select { UserData.username eq usernameString }.empty() &&
+                    UserRegistration.select { UserRegistration.token eq tokenString }.map { it[UserRegistration.token] }[0] == tokenString
+                ) {
                     usernameString == UserRegistration.select { UserRegistration.username eq usernameString }.map { it[UserRegistration.username] }[0]
                 } else false
             } catch (_: Exception) {
@@ -139,11 +141,25 @@ class DatabaseController(dbFileLocation: String = "main.db") {
      * Adds a user to the registration table
      */
     fun indexUserRegistration(ctx: Context) {
+        val usernameString = ctx.queryParam("username", "").toString()
+        val tokenString = generateRandomString()
+        var error = false
+
         transaction {
-            UserRegistration.insert {
-                it[username] = ctx.queryParam("username", "").toString()
+            try {
+                UserRegistration.insert {
+                    it[username] = usernameString
+                    it[token] = tokenString
+                }
+            } catch (_: Exception) {
+                error = true
             }
         }
+
+        if (error) ctx.result("User already exists")
+        else ctx.result(
+            "Registration url: " + "http://${ctx.host()}/user/register?username=$usernameString&token=$tokenString"
+        )
     }
 
     /**
@@ -237,7 +253,6 @@ class DatabaseController(dbFileLocation: String = "main.db") {
                             userRoles.add(Roles.GUEST)
                         }
                         Roles.USER -> {
-                            userRoles.add(Roles.GUEST)
                             userRoles.add(Roles.USER)
                         }
                         Roles.ADMIN -> {

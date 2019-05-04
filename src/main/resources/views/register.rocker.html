@@ -1,4 +1,4 @@
-@args (String username, String message)
+@args (String username, String token, String message)
 
 @layout.template("Register", RockerContent.NONE, RockerContent.NONE) -> {
 <div class="flex">
@@ -8,6 +8,7 @@
         <h3>Please set a password for user "@username"</h3>
         <div>
             <input hidden name="username" type="text" value="@username"/>
+            <input hidden name="token" type="text" value="@token"/>
         </div>
         <div>
             <label for="password">Password:</label>

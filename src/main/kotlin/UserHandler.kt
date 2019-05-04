@@ -112,10 +112,13 @@ class UserHandler {
      */
     fun renderRegistration(ctx: Context) {
         val username = ctx.queryParam("username", "")
+        val token = ctx.queryParam("token", "")
+
         if (username.isNullOrEmpty()) ctx.status(403).result("Please provide a valid username!")
+        else if (token.isNullOrEmpty()) ctx.status(403).result("Please provide a valid token!")
         else {
-            if (databaseController.isUserRegistrationValid(username))
-                ctx.render("register.rocker.html", model("username", username, "message", ""))
+            if (databaseController.isUserRegistrationValid(username, token))
+                ctx.render("register.rocker.html", model("username", username, "token", token, "message", ""))
             else ctx.redirect("/user/login")
         }
     }
@@ -126,11 +129,12 @@ class UserHandler {
     fun register(ctx: Context) {
         try {
             val username = ctx.formParam("username").toString()
+            val token = ctx.formParam("token").toString()
             val password = ctx.formParam("password").toString()
             val verifyPassword = ctx.formParam("verifyPassword").toString()
 
             if (password == verifyPassword) {
-                if (databaseController.isUserRegistrationValid(username)) {
+                if (databaseController.isUserRegistrationValid(username, token)) {
                     databaseController.createUser(username, password, "USER")
                     databaseController.removeRegistrationIndex(username)
                     ctx.redirect("/user/login")

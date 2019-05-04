@@ -46,20 +46,20 @@ fun main(args: Array<String>) {
                 ctx.contentType("text/css")
                 ctx.result(Thread.currentThread().contextClassLoader.getResourceAsStream("css/" + ctx.splat(0)))
             },
-            roles(Roles.GUEST)
+            roles(Roles.GUEST, Roles.USER)
         )
         get(
             "/js/*", { ctx ->
                 ctx.contentType("text/js")
                 ctx.result(Thread.currentThread().contextClassLoader.getResourceAsStream("js/" + ctx.splat(0)))
             },
-            roles(Roles.GUEST)
+            roles(Roles.GUEST, Roles.USER)
         )
         get(
             "/fonts/*", { ctx ->
                 ctx.result(Thread.currentThread().contextClassLoader.getResourceAsStream("fonts/" + ctx.splat(0)))
             },
-            roles(Roles.GUEST)
+            roles(Roles.GUEST, Roles.USER)
         )
 
         /**
@@ -70,12 +70,12 @@ fun main(args: Array<String>) {
                 "index.rocker.html",
                 model("username", databaseController.getUsername(userHandler.getVerifiedUserId(ctx)))
             )
-        }, roles(Roles.GUEST))
+        }, roles(Roles.GUEST, Roles.USER))
 
         /**
          * Renders the login page
          */
-        get("/user/login", userHandler::renderLogin, roles(Roles.GUEST))
+        get("/user/login", userHandler::renderLogin, roles(Roles.GUEST, Roles.USER))
 
         /**
          * Endpoint for user authentication
@@ -99,12 +99,9 @@ fun main(args: Array<String>) {
 
         /**
          * Adds part of a new user (username) to database
+         * TODO: Create post request with admin interface
          */
-        get(
-            "/user/add",
-            databaseController::indexUserRegistration,
-            roles(Roles.ADMIN)
-        )  // TODO: Create post request with admin interface
+        get("/user/add", databaseController::indexUserRegistration, roles(Roles.ADMIN))
 
         /**
          * Renders the setup page (only on initial use)
@@ -139,12 +136,12 @@ fun main(args: Array<String>) {
         /**
          * Shares file in directory
          */
-        post("/share", fileController::handleSharedFile, roles(Roles.GUEST))
+        post("/share", fileController::handleSharedFile, roles(Roles.USER))
 
         /**
          * Shows the shared file
          */
-        get("/shared", fileController::renderShared, roles(Roles.GUEST))
+        get("/shared", fileController::renderShared, roles(Roles.GUEST, Roles.USER))
     }
 }
 
@@ -152,14 +149,13 @@ fun main(args: Array<String>) {
  * Sets up the roles with the database and declares the handling of roles
  */
 fun roleManager(handler: Handler, ctx: Context, permittedRoles: Set<Role>) {
-    when {
-        userHandler.getVerifiedUserId(ctx) == ctx.cookieStore("userId") ?: "userId" -> handler.handle(ctx)
-        databaseController.getRoles(userHandler.getVerifiedUserId(ctx)).any { it in permittedRoles } -> handler.handle(
-            ctx
-        )
-        // ctx.host()!!.contains("localhost") -> handler.handle(ctx) // DEBUG
-        else -> ctx.status(401).redirect("/user/login")
-    }
+    if (userHandler.getVerifiedUserId(ctx) == ctx.cookieStore("userId") ?: "userId"
+        && databaseController.getRoles(userHandler.getVerifiedUserId(ctx)).any { it in permittedRoles }
+    ) handler.handle(ctx)
+    else if (userHandler.getVerifiedUserId(ctx) != ctx.cookieStore("userId") ?: "userId"
+        && databaseController.getRoles(userHandler.getVerifiedUserId(ctx)).any { it in permittedRoles }
+    ) handler.handle(ctx)
+    else ctx.status(401).redirect("/user/login")
 }
 
 /**

@@ -23,9 +23,7 @@ drop.addEventListener('drop', e => {
     for (let i = 0; i < items.length; i++) {
         const item = items[i].webkitGetAsEntry();
         const file = items[i].getAsFile();
-
-        // TODO: Consider using current date due to updated lastModified state at upload
-        const date = new Date(file.lastModified);
+        const date = new Date();
 
         const row = document.getElementById("table").insertRow(-1);
         row.setAttribute("data-href", file.name);

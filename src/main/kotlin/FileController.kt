@@ -223,7 +223,7 @@ class FileController {
     }
 
     /**
-     * Returns the access id of a file
+     * Returns the access id of the directory
      */
     fun handleSharedFile(ctx: Context) {
         val filename = ctx.formParam("filename").toString()
