@@ -65,7 +65,8 @@ class UserHandler {
      * Logs the user out of the system
      */
     fun logout(ctx: Context) {
-        ctx.clearCookieStore() // TODO: Fix cookie clearing after logout
+        ctx.clearCookieStore()
+        ctx.removeCookie("javalin-cookie-store", "/")
         ctx.redirect("/")
     }
 
