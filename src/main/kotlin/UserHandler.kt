@@ -81,6 +81,13 @@ class UserHandler {
     }
 
     /**
+     * Renders the admin interface
+     */
+    fun renderAdmin(ctx: Context) {
+        ctx.render("admin.rocker.html", model("message", ""))
+    }
+
+    /**
      * Renders the setup page
      */
     fun renderSetup(ctx: Context) {
@@ -138,10 +145,16 @@ class UserHandler {
                     databaseController.createUser(username, password, "USER")
                     databaseController.removeRegistrationIndex(username)
                     ctx.redirect("/user/login")
-                } else ctx.status(401).result("This user is not authorized to register.")
-            } else ctx.status(400).result("The passwords don't match!")
+                } else ctx.render(
+                    "register.rocker.html",
+                    model("username", username, "token", token, "message", "Not authorized!")
+                )
+            } else ctx.render(
+                "register.rocker.html",
+                model("username", username, "token", token, "message", "The passwords don't match!")
+            )
         } catch (_: Exception) {
-            ctx.status(400).result("An exception occured.")
+            ctx.status(400).result("An exception occurred.")
         }
     }
 
@@ -153,5 +166,14 @@ class UserHandler {
             == ctx.cookieStore("userId") ?: "userId"
         ) ctx.cookieStore("userId")
         else -1
+    }
+
+    /**
+     * Checks whether a user has admin privileges
+     */
+    fun isAdmin(usernameString: String): Boolean {
+        val userId = databaseController.getUserId(usernameString)
+        return if (userId > 0) databaseController.getRoles(userId).contains(Roles.ADMIN)
+        else false
     }
 }

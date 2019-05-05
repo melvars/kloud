@@ -44,20 +44,32 @@ fun main(args: Array<String>) {
         get(
             "/css/*", { ctx ->
                 ctx.contentType("text/css")
-                ctx.result(Thread.currentThread().contextClassLoader.getResourceAsStream("css/" + ctx.splat(0)))
+                try {
+                    ctx.result(Thread.currentThread().contextClassLoader.getResourceAsStream("css/" + ctx.splat(0)))
+                } catch (_: Exception) {
+                    ctx.status(404)
+                }
             },
             roles(Roles.GUEST, Roles.USER)
         )
         get(
             "/js/*", { ctx ->
                 ctx.contentType("text/javascript")
-                ctx.result(Thread.currentThread().contextClassLoader.getResourceAsStream("js/" + ctx.splat(0)))
+                try {
+                    ctx.result(Thread.currentThread().contextClassLoader.getResourceAsStream("js/" + ctx.splat(0)))
+                } catch (_: Exception) {
+                    ctx.status(404)
+                }
             },
             roles(Roles.GUEST, Roles.USER)
         )
         get(
             "/fonts/*", { ctx ->
-                ctx.result(Thread.currentThread().contextClassLoader.getResourceAsStream("fonts/" + ctx.splat(0)))
+                try {
+                    ctx.result(Thread.currentThread().contextClassLoader.getResourceAsStream("fonts/" + ctx.splat(0)))
+                } catch (_: Exception) {
+                    ctx.status(404)
+                }
             },
             roles(Roles.GUEST, Roles.USER)
         )
@@ -99,9 +111,13 @@ fun main(args: Array<String>) {
 
         /**
          * Adds part of a new user (username) to database
-         * TODO: Create post request with admin interface
          */
-        get("/user/add", databaseController::indexUserRegistration, roles(Roles.ADMIN))
+        post("/user/add", databaseController::indexUserRegistration, roles(Roles.ADMIN))
+
+        /**
+         * Renders the admin interface
+         */
+        get("/admin", userHandler::renderAdmin, roles(Roles.ADMIN))
 
         /**
          * Renders the setup page (only on initial use)

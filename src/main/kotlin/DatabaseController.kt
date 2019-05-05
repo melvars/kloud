@@ -2,6 +2,7 @@ package space.anity
 
 import at.favre.lib.crypto.bcrypt.*
 import io.javalin.*
+import io.javalin.rendering.template.TemplateUtil.model
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.*
 import org.joda.time.*
@@ -141,7 +142,7 @@ class DatabaseController(dbFileLocation: String = "main.db") {
      * Adds a user to the registration table
      */
     fun indexUserRegistration(ctx: Context) {
-        val usernameString = ctx.queryParam("username", "").toString()
+        val usernameString = ctx.formParam("username", "").toString()
         val tokenString = generateRandomString()
         var error = false
 
@@ -156,9 +157,11 @@ class DatabaseController(dbFileLocation: String = "main.db") {
             }
         }
 
-        if (error) ctx.result("User already exists")
-        else ctx.result(
-            "Registration url: " + "http://${ctx.host()}/user/register?username=$usernameString&token=$tokenString"
+        if (error) ctx.render("admin.rocker.html", model("message", "User already exists!"))
+        else ctx.render(
+            "admin.rocker.html", model(
+                "message", "http://${ctx.host()}/user/register?username=$usernameString&token=$tokenString"
+            )
         )
     }
 
@@ -288,8 +291,8 @@ class DatabaseController(dbFileLocation: String = "main.db") {
                     false
                 }
             } catch (_: Exception) {
-                if (!isDirectoryBool) log.warning("File already exists!")
-                false
+                if (!isDirectoryBool) log.warning("Error during indexing of the file!")
+                true // Ugly solution
             }
         }
     }
