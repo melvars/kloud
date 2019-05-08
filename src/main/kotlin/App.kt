@@ -13,7 +13,8 @@ import java.net.*
 import java.util.logging.*
 import kotlin.system.*
 
-const val fileHome = "files"
+// TODO: Add abstract and secure file home support for windows/BSD/macOS
+val fileHome = if (System.getProperty("os.name") != "Linux") "files" else "/usr/share/kloud/files"
 val databaseController = DatabaseController()
 val userHandler = UserHandler()
 val fileController = FileController()

@@ -9,7 +9,8 @@ import org.joda.time.*
 import java.sql.*
 import java.util.logging.*
 
-class DatabaseController(dbFileLocation: String = "main.db") {
+class DatabaseController {
+    private val dbFileLocation = if (System.getProperty("os.name") != "Linux") "main.db" else "/usr/share/kloud/main.db"
     val db: Database = Database.connect("jdbc:sqlite:$dbFileLocation", "org.sqlite.JDBC")
     private val log = Logger.getLogger(this.javaClass.name)
 
