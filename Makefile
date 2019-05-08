@@ -22,6 +22,6 @@ else
 	echo -e "#!/bin/sh\nsudo -u kloud java -jar /usr/share/kloud/kloud-*-all.jar \$$@" > /usr/bin/kloud
 	chmod +x /usr/bin/kloud
     else
-	@echo This OS doesn't support out automatic installation, please execute the jar file manually
+	@echo This OS doesn't support automatic installation, please execute the jar file manually
     endif
 endif
