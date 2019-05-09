@@ -18,17 +18,16 @@
 - Open source
 
 ## Installation
-To install and run Kloud, you can either download the latest release on GitHub or use the "Development setup" instructions
-below to build an executable yourself.  
-After that you can easily start the server via `java -jar build/libs/kloud-*-all.jar`
-
-## Manual setup
-* Setup a Java JDK and JRE Environment
-* Install Gradle
-* Clone repository
-* For development use: `gradle run`
-* For building use: `make` or `gradle build`
-* To install and add the jar to the PATH (most useful on Linux), use `make && sudo make install`
+There are several ways to install Kloud:  
+* Manual:
+    * Setup a Java JDK and JRE Environment
+    * Install Gradle
+    * Clone repository
+    * For development use: `gradle run`
+    * For building use: `make` or `gradle build`
+    * To install and add the jar to the PATH (most useful on Linux), use `sudo make install`
+* Automatic:
+    * If you're using Arch Linux, you can use our build in the AUR to install Kloud (eg. `yay -S kloud`)
 
 ## Help us with a small donation :)
 <p align="center">
