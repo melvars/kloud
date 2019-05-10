@@ -46,8 +46,7 @@ class FileController {
                     ctx.result(FileInputStream(File(fileLocation)))
                 }
             }
-        } catch (err: Exception) {
-            log.warning(err.toString())
+        } catch (_: Exception) {
             throw NotFoundResponse("Error: File or directory does not exist.")
         }
     }

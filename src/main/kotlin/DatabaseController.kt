@@ -10,7 +10,8 @@ import java.sql.*
 import java.util.logging.*
 
 class DatabaseController {
-    private val dbFileLocation = if (System.getProperty("os.name") != "Linux") "main.db" else "/usr/share/kloud/main.db"
+    private val dbFileLocation =
+        if (System.getProperty("os.name") != "Linux" || debug) "main.db" else "/usr/share/kloud/main.db"
     val db: Database = Database.connect("jdbc:sqlite:$dbFileLocation", "org.sqlite.JDBC")
     private val log = Logger.getLogger(this.javaClass.name)
 
@@ -144,26 +145,29 @@ class DatabaseController {
      */
     fun indexUserRegistration(ctx: Context) {
         val usernameString = ctx.formParam("username", "").toString()
-        val tokenString = generateRandomString()
-        var error = false
 
-        transaction {
-            try {
-                UserRegistration.insert {
-                    it[username] = usernameString
-                    it[token] = tokenString
+        if (usernameString.matches("[a-zA-Z0-9]+".toRegex()) && usernameString.length > 3) {
+            val tokenString = generateRandomString()
+            var error = false
+
+            transaction {
+                try {
+                    UserRegistration.insert {
+                        it[username] = usernameString
+                        it[token] = tokenString
+                    }
+                } catch (_: Exception) {
+                    error = true
                 }
-            } catch (_: Exception) {
-                error = true
             }
-        }
 
-        if (error) ctx.render("admin.rocker.html", model("message", "User already exists!"))
-        else ctx.render(
-            "admin.rocker.html", model(
-                "message", "http://${ctx.host()}/user/register?username=$usernameString&token=$tokenString"
+            if (error) ctx.render("admin.rocker.html", model("message", "User already exists!"))
+            else ctx.render(
+                "admin.rocker.html", model(
+                    "message", "http://${ctx.host()}/user/register?username=$usernameString&token=$tokenString"
+                )
             )
-        )
+        } else ctx.render("admin.rocker.html", model("message", "Please only use alphabetical characters!"))
     }
 
     /**
@@ -291,8 +295,8 @@ class DatabaseController {
                     if (!isDirectoryBool) log.warning("File already exists!")
                     false
                 }
-            } catch (_: Exception) {
-                if (!isDirectoryBool) log.warning("Error during indexing of the file!")
+            } catch (err: Exception) {
+                if (!isDirectoryBool) error(err)
                 true // Ugly solution
             }
         }

@@ -18,6 +18,7 @@ val fileHome = if (System.getProperty("os.name") != "Linux") "files" else "/usr/
 val databaseController = DatabaseController()
 val userHandler = UserHandler()
 val fileController = FileController()
+const val debug = false
 private val log = Logger.getLogger("App.kt")
 
 fun main(args: Array<String>) {
@@ -48,7 +49,7 @@ fun main(args: Array<String>) {
                 try {
                     ctx.result(Thread.currentThread().contextClassLoader.getResourceAsStream("css/" + ctx.splat(0)))
                 } catch (_: Exception) {
-                    ctx.status(404)
+                    throw NotFoundResponse()
                 }
             },
             roles(Roles.GUEST, Roles.USER)
@@ -59,7 +60,7 @@ fun main(args: Array<String>) {
                 try {
                     ctx.result(Thread.currentThread().contextClassLoader.getResourceAsStream("js/" + ctx.splat(0)))
                 } catch (_: Exception) {
-                    ctx.status(404)
+                    throw NotFoundResponse()
                 }
             },
             roles(Roles.GUEST, Roles.USER)
@@ -69,7 +70,7 @@ fun main(args: Array<String>) {
                 try {
                     ctx.result(Thread.currentThread().contextClassLoader.getResourceAsStream("fonts/" + ctx.splat(0)))
                 } catch (_: Exception) {
-                    ctx.status(404)
+                    throw NotFoundResponse()
                 }
             },
             roles(Roles.GUEST, Roles.USER)
@@ -205,8 +206,7 @@ fun startServer(args: Array<String>): Javalin {
                 disableStartupBanner()
             }.start()
         } catch (_: Exception) {
-            log.warning("Port already in use!")
-            exitProcess(1)
+            throw PortUnreachableException("Port already in use!")
         }
     } else exitProcess(1)
 }

@@ -103,14 +103,24 @@ class UserHandler {
             val username = ctx.formParam("username").toString()
             val password = ctx.formParam("password").toString()
             val verifyPassword = ctx.formParam("verifyPassword").toString()
-            if (password == verifyPassword) {
-                if (databaseController.createUser(username, password, "ADMIN")) {
-                    databaseController.toggleSetup()
-                    ctx.redirect("/user/login")
-                } else ctx.status(400).render("setup.rocker.html", model("message", "User already exists!"))
-            } else ctx.status(400).render("setup.rocker.html", model("message", "Passwords do not match!"))
-        } catch (_: Exception) {
+
+            // TODO: Clean up ugly if statements in validation
+            if (!username.matches("[a-zA-Z0-9]+".toRegex()) || username.length <= 3) {
+                if (password == verifyPassword) {
+                    if (password.length >= 8)
+                        if (databaseController.createUser(username, password, "ADMIN")) {
+                            databaseController.toggleSetup()
+                            ctx.redirect("/user/login")
+                        } else ctx.status(400).render("setup.rocker.html", model("message", "User already exists!"))
+                    else ctx.status(400).render("setup.rocker.html", model("message", "Password is too short!"))
+                } else ctx.status(400).render("setup.rocker.html", model("message", "Passwords do not match!"))
+            } else ctx.status(400).render(
+                "setup.rocker.html",
+                model("message", "Username must only use alphabetical characters!")
+            )
+        } catch (err: Exception) {
             ctx.status(400).render("setup.rocker.html", model("message", "An error occurred!"))
+            error(err)
         }
     }
 
@@ -121,8 +131,8 @@ class UserHandler {
         val username = ctx.queryParam("username", "")
         val token = ctx.queryParam("token", "")
 
-        if (username.isNullOrEmpty()) ctx.status(403).result("Please provide a valid username!")
-        else if (token.isNullOrEmpty()) ctx.status(403).result("Please provide a valid token!")
+        if (username.isNullOrEmpty()) throw ForbiddenResponse("Please provide a valid username!")
+        else if (token.isNullOrEmpty()) throw ForbiddenResponse("Please provide a valid token!")
         else {
             if (databaseController.isUserRegistrationValid(username, token))
                 ctx.render("register.rocker.html", model("username", username, "token", token, "message", ""))
@@ -141,20 +151,29 @@ class UserHandler {
             val verifyPassword = ctx.formParam("verifyPassword").toString()
 
             if (password == verifyPassword) {
-                if (databaseController.isUserRegistrationValid(username, token)) {
-                    databaseController.createUser(username, password, "USER")
-                    databaseController.removeRegistrationIndex(username)
-                    ctx.redirect("/user/login")
-                } else ctx.render(
+                if (password.length >= 8)
+                    if (databaseController.isUserRegistrationValid(username, token)) {
+                        databaseController.createUser(username, password, "USER")
+                        databaseController.removeRegistrationIndex(username)
+                        ctx.redirect("/user/login")
+                    } else ctx.render(
+                        "register.rocker.html",
+                        model("username", username, "token", token, "message", "Not authorized!")
+                    )
+                else ctx.render(
                     "register.rocker.html",
-                    model("username", username, "token", token, "message", "Not authorized!")
+                    model(
+                        "username", username,
+                        "token", token,
+                        "message", "Please make sure that your password is at least 8 digits long!"
+                    )
                 )
             } else ctx.render(
                 "register.rocker.html",
                 model("username", username, "token", token, "message", "The passwords don't match!")
             )
-        } catch (_: Exception) {
-            ctx.status(400).result("An exception occurred.")
+        } catch (err: Exception) {
+            throw BadRequestResponse()
         }
     }
 
