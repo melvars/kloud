@@ -1,4 +1,7 @@
-@args (String title, RockerContent css, RockerContent js, RockerBody content)
+@import space.anity.DatabaseController
+@import space.anity.UserHandler
+@import io.javalin.*
+@args (String title, Context ctx, RockerContent css, RockerContent js, RockerBody content)
 
 <!doctype html>
 <html lang="en">
@@ -10,6 +13,11 @@
     <link href="/css/icons.css" rel="stylesheet">
     <link href="/css/layout.css" rel="stylesheet">
     @css
+
+    @if((new DatabaseController()).isDarkTheme((new UserHandler()).getVerifiedUserId(ctx))) {
+    <link href="/css/darkLayout.css" rel="stylesheet">
+    }
+
     <title>@title</title>
 </head>
 <body>

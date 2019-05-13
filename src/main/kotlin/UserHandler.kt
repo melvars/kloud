@@ -14,7 +14,7 @@ class UserHandler {
      */
     fun renderLogin(ctx: Context) {
         if (userHandler.getVerifiedUserId(ctx) > 0 || !databaseController.isSetup()) ctx.redirect("/")
-        else ctx.render("login.rocker.html", model("message", "", "counter", 0))
+        else ctx.render("login.rocker.html", model("message", "", "counter", 0, "ctx", ctx))
     }
 
     /**
@@ -54,7 +54,8 @@ class UserHandler {
                     model(
                         "message",
                         "Login failed!",
-                        "counter", if (nextThreshold / 60 > 60) 3600 else nextThreshold.toInt()
+                        "counter", if (nextThreshold / 60 > 60) 3600 else nextThreshold.toInt(),
+                        "ctx", ctx
                     )
                 )
             }
@@ -65,7 +66,8 @@ class UserHandler {
                 model(
                     "message",
                     "Too many request.",
-                    "counter", if (nextThreshold / 60 > 60) 3600 else nextThreshold.toInt()
+                    "counter", if (nextThreshold / 60 > 60) 3600 else nextThreshold.toInt(),
+                    "ctx", ctx
                 )
             )
         }
@@ -81,10 +83,19 @@ class UserHandler {
     }
 
     /**
+     * Toggles the users dark theme
+     */
+    fun toggleTheme(ctx: Context) {
+        databaseController.toggleDarkTheme(userHandler.getVerifiedUserId(ctx))
+        val dark = databaseController.isDarkTheme(userHandler.getVerifiedUserId(ctx))
+        ctx.json(mapOf("dark" to dark))
+    }
+
+    /**
      * Renders the admin interface
      */
     fun renderAdmin(ctx: Context) {
-        ctx.render("admin.rocker.html", model("message", ""))
+        ctx.render("admin.rocker.html", model("message", "", "ctx", ctx))
     }
 
     /**
@@ -92,7 +103,7 @@ class UserHandler {
      */
     fun renderSetup(ctx: Context) {
         if (databaseController.isSetup()) ctx.redirect("/user/login")
-        else ctx.render("setup.rocker.html", model("message", ""))
+        else ctx.render("setup.rocker.html", model("message", "", "ctx", ctx))
     }
 
     /**
@@ -105,21 +116,30 @@ class UserHandler {
             val verifyPassword = ctx.formParam("verifyPassword").toString()
 
             // TODO: Clean up ugly if statements in validation
-            if (!username.matches("[a-zA-Z0-9]+".toRegex()) || username.length <= 3) {
+            if (username.matches("[a-zA-Z0-9]+".toRegex()) && username.length > 3) {
                 if (password == verifyPassword) {
                     if (password.length >= 8)
                         if (databaseController.createUser(username, password, "ADMIN")) {
                             databaseController.toggleSetup()
                             ctx.redirect("/user/login")
-                        } else ctx.status(400).render("setup.rocker.html", model("message", "User already exists!"))
-                    else ctx.status(400).render("setup.rocker.html", model("message", "Password is too short!"))
-                } else ctx.status(400).render("setup.rocker.html", model("message", "Passwords do not match!"))
+                        } else ctx.status(400).render(
+                            "setup.rocker.html",
+                            model("message", "User already exists!", "ctx", ctx)
+                        )
+                    else ctx.status(400).render(
+                        "setup.rocker.html",
+                        model("message", "Password is too short!", "ctx", ctx)
+                    )
+                } else ctx.status(400).render(
+                    "setup.rocker.html",
+                    model("message", "Passwords do not match!", "ctx", ctx)
+                )
             } else ctx.status(400).render(
                 "setup.rocker.html",
-                model("message", "Username must only use alphabetical characters!")
+                model("message", "Username must only use alphabetical characters!", "ctx", ctx)
             )
         } catch (err: Exception) {
-            ctx.status(400).render("setup.rocker.html", model("message", "An error occurred!"))
+            ctx.status(400).render("setup.rocker.html", model("message", "An error occurred!", "ctx", ctx))
             error(err)
         }
     }
@@ -135,7 +155,10 @@ class UserHandler {
         else if (token.isNullOrEmpty()) throw ForbiddenResponse("Please provide a valid token!")
         else {
             if (databaseController.isUserRegistrationValid(username, token))
-                ctx.render("register.rocker.html", model("username", username, "token", token, "message", ""))
+                ctx.render(
+                    "register.rocker.html",
+                    model("username", username, "token", token, "message", "", "ctx", ctx)
+                )
             else ctx.redirect("/user/login")
         }
     }
@@ -158,19 +181,20 @@ class UserHandler {
                         ctx.redirect("/user/login")
                     } else ctx.render(
                         "register.rocker.html",
-                        model("username", username, "token", token, "message", "Not authorized!")
+                        model("username", username, "token", token, "message", "Not authorized!", "ctx", ctx)
                     )
                 else ctx.render(
                     "register.rocker.html",
                     model(
                         "username", username,
                         "token", token,
-                        "message", "Please make sure that your password is at least 8 digits long!"
+                        "message", "Please make sure that your password is at least 8 digits long!",
+                        "ctx", ctx
                     )
                 )
             } else ctx.render(
                 "register.rocker.html",
-                model("username", username, "token", token, "message", "The passwords don't match!")
+                model("username", username, "token", token, "message", "The passwords don't match!", "ctx", ctx)
             )
         } catch (err: Exception) {
             throw BadRequestResponse()

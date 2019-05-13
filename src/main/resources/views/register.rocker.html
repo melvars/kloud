@@ -1,6 +1,7 @@
-@args (String username, String token, String message)
+@import io.javalin.*
+@args (String username, String token, String message, Context ctx)
 
-@layout.template("Register", RockerContent.NONE, RockerContent.NONE) -> {
+@layout.template("Register", ctx, RockerContent.NONE, RockerContent.NONE) -> {
 <div class="flex">
     <h1>Register</h1>
 

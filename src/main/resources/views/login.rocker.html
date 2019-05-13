@@ -1,11 +1,12 @@
-@args (String message, Integer counter)
+@import io.javalin.*
+@args (String message, Integer counter, Context ctx)
 
 @js => {
 <script>const counter = @counter;</script>
 <script src="/js/login.js"></script>
 }
 
-@layout.template("Login", RockerContent.NONE, js) -> {
+@layout.template("Login", ctx, RockerContent.NONE, js) -> {
 <div class="flex">
     <h1>Login</h1>
 

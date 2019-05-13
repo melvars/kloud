@@ -1,9 +1,22 @@
 @import space.anity.DatabaseController
 @import space.anity.UserHandler
-@args (String username)
+@import io.javalin.*
+@args (String username, Context ctx)
 
-@layout.template("Index", RockerContent.NONE, RockerContent.NONE) -> {
+@css => {
+<link href="/css/index.css" rel="stylesheet">
+}
+
+@js => {
+<script src="/js/index.js"></script>
+}
+
+@layout.template("Index", ctx, css, js) -> {
 <div class="flex">
+    @if (username.length() > 0) {
+    <button class="toggle" id="toggle">Dark theme</button>
+    }
+
     <h1>Welcome to Kloud<span class="username">@(username == "" ? "" : " " + username)</span>!</h1>
 
     <div>

@@ -14,11 +14,11 @@ import java.util.logging.*
 import kotlin.system.*
 
 // TODO: Add abstract and secure file home support for windows/BSD/macOS
-val fileHome = if (System.getProperty("os.name") != "Linux") "files" else "/usr/share/kloud/files"
+const val debug = true
+val fileHome = if (System.getProperty("os.name") != "Linux" || debug) "files" else "/usr/share/kloud/files"
 val databaseController = DatabaseController()
 val userHandler = UserHandler()
 val fileController = FileController()
-const val debug = false
 private val log = Logger.getLogger("App.kt")
 
 fun main(args: Array<String>) {
@@ -82,7 +82,7 @@ fun main(args: Array<String>) {
         get("/", { ctx ->
             ctx.render(
                 "index.rocker.html",
-                model("username", databaseController.getUsername(userHandler.getVerifiedUserId(ctx)))
+                model("username", databaseController.getUsername(userHandler.getVerifiedUserId(ctx)), "ctx", ctx)
             )
         }, roles(Roles.GUEST, Roles.USER))
 
@@ -100,6 +100,11 @@ fun main(args: Array<String>) {
          * Logs the user out
          */
         get("/user/logout", userHandler::logout, roles(Roles.USER))
+
+        /**
+         * Toggles the users theme
+         */
+        post("/user/theme", userHandler::toggleTheme, roles(Roles.USER))
 
         /**
          * Renders the registration page

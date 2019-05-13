@@ -1,4 +1,5 @@
-@args (String content, String filename, String extension)
+@import io.javalin.*
+@args (String content, String filename, String extension, Context ctx)
 
 @css => {
 <link href="/css/fileview.css" rel="stylesheet">
@@ -12,7 +13,7 @@
 <script src="/js/fileview.js"></script>
 }
 
-@layout.template("File " + filename, css, js) -> {
+@layout.template("File " + filename, ctx, css, js) -> {
 <button class="switch" id="raw">Show raw</button>
 <span class="settings" id="settings">
     <label for="code">Linecount</label><input id="code" type="checkbox">

@@ -36,7 +36,8 @@ class FileController {
                         "files.rocker.html", model(
                             "files", files,
                             "path", (if (firstParam.firstOrNull() == '/') firstParam.drop(1) else firstParam),
-                            "isShared", false
+                            "isShared", false,
+                            "ctx", ctx
                         )
                     )
                 }
@@ -178,7 +179,8 @@ class FileController {
                     "files.rocker.html", model(
                         "files", files,
                         "path", (if (fileLocation.firstOrNull() == '/') fileLocation.drop(1) else fileLocation),
-                        "isShared", true
+                        "isShared", true,
+                        "ctx", ctx
                     )
                 )
             }
@@ -216,7 +218,8 @@ class FileController {
                     Charsets.UTF_8
                 ).joinToString(separator = "\n"),
                 "filename", File(filePath).name,
-                "extension", File(filePath).extension
+                "extension", File(filePath).extension,
+                "ctx", ctx
             )
         )
     }

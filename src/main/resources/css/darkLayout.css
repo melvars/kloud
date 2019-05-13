@@ -1,0 +1,32 @@
+/**
+    Main
+ */
+body {
+    background-color: #181a1b;
+}
+
+.main {
+    color: #d0cdc6
+}
+
+button {
+    text-decoration-color: initial;
+    background-color: #3d4043;
+    border-top-color: #595959;
+    border-right-color: #595959;
+    border-bottom-color: #595959;
+    border-left-color: #595959;
+    color: #ffffff;
+}
+
+input {
+    border-color: #575757;
+    color: #e8e6e3;
+}
+
+/**
+    Other stuff
+ */
+tr:hover {
+    background-color: #121516 !important;
+}

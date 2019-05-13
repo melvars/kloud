@@ -1,5 +1,6 @@
 @import java.util.ArrayList
-@args (ArrayList files, String path, Boolean isShared)
+@import io.javalin.*
+@args (ArrayList files, String path, Boolean isShared, Context ctx)
 
 @css => {
 <link href="/css/files.css" rel="stylesheet">
@@ -14,7 +15,7 @@
 <script src="/js/files.js"></script>
 }
 
-@layout.template(files.size() + " Files", css, js) -> {
+@layout.template(files.size() + " Files", ctx, css, js) -> {
 <div class="drop" id="drop">
     <h2 class="navigation">
         <i class="icon ion-md-home"></i>

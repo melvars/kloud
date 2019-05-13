@@ -1,6 +1,7 @@
-@args (String message)
+@import io.javalin.*
+@args (String message, Context ctx)
 
-@layout.template("Setup", RockerContent.NONE, RockerContent.NONE) -> {
+@layout.template("Setup", ctx, RockerContent.NONE, RockerContent.NONE) -> {
 <div class="flex">
     <h1>Setup</h1>
 

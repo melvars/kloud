@@ -35,6 +35,7 @@ class DatabaseController {
         val username = varchar("username", 24).uniqueIndex()
         val password = varchar("password", 64)
         val verification = varchar("verification", 64).uniqueIndex()
+        val darkTheme = bool("darkTheme").default(false)
     }
 
     /**
@@ -161,13 +162,14 @@ class DatabaseController {
                 }
             }
 
-            if (error) ctx.render("admin.rocker.html", model("message", "User already exists!"))
+            if (error) ctx.render("admin.rocker.html", model("message", "User already exists!", "ctx", ctx))
             else ctx.render(
                 "admin.rocker.html", model(
-                    "message", "http://${ctx.host()}/user/register?username=$usernameString&token=$tokenString"
+                    "message", "http://${ctx.host()}/user/register?username=$usernameString&token=$tokenString",
+                    "ctx", ctx
                 )
             )
-        } else ctx.render("admin.rocker.html", model("message", "Please only use alphabetical characters!"))
+        } else ctx.render("admin.rocker.html", model("message", "Please only use alphabetical characters!", "ctx", ctx))
     }
 
     /**
@@ -216,6 +218,34 @@ class DatabaseController {
                 UserData.select { UserData.verification eq verificationId }.map { it[UserData.id] }[0]
             } catch (_: Exception) {
                 -1
+            }
+        }
+    }
+
+    /**
+     * Returns true when user uses dark theme
+     */
+    fun isDarkTheme(userId: Int): Boolean {
+        return transaction {
+            try {
+                UserData.select { UserData.id eq userId }.map { it[UserData.darkTheme] }[0]
+            } catch (_: Exception) {
+                false
+            }
+        }
+    }
+
+    /**
+     * Toggles the dark theme
+     */
+    fun toggleDarkTheme(userId: Int) {
+        return transaction {
+            try {
+                UserData.update({ (UserData.id eq userId) }) {
+                    it[darkTheme] = !isDarkTheme(userId)
+                }
+            } catch (_: Exception) {
+                //
             }
         }
     }
