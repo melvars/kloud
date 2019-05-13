@@ -14,7 +14,13 @@
 @layout.template("Index", ctx, css, js) -> {
 <div class="flex">
     @if (username.length() > 0) {
-    <button class="toggle" id="toggle">Dark theme</button>
+    <button class="toggle" id="toggle">
+        @if((new DatabaseController()).isDarkTheme((new UserHandler()).getVerifiedUserId(ctx))) {
+        Light theme
+        } else {
+        Dark theme
+        }
+    </button>
     }
 
     <h1>Welcome to Kloud<span class="username">@(username == "" ? "" : " " + username)</span>!</h1>
