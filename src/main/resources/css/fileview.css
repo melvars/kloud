@@ -12,6 +12,12 @@ html, body {
     overflow: visible;
 }
 
+iframe.preview {
+    background: #fff;
+    width: 100%;
+    height: 100%;
+}
+
 .icon, .italic, .bold, .header {
     font-size: 20px;
 }
