@@ -7,7 +7,6 @@ const body = document.body;
 // buttons
 const raw = document.getElementById("raw");
 const code = document.getElementById("code");
-const dark = document.getElementById("dark");
 const settings = document.getElementById("settings");
 
 const originalContent = content.innerText;
@@ -15,9 +14,9 @@ const originalContent = content.innerText;
 if (extension === "html") {
     preview.src = "data:text/html;charset=utf-8," + encodeURI(originalContent);
 
-    preview.style.display = "block";
+    preview.style.display = "none";
     raw.style.display = "block";
-    content.style.display = "none";
+    content.style.display = "block";
 
     raw.addEventListener("click", () => {
         if (preview.style.display === "block") {
@@ -65,17 +64,5 @@ code.addEventListener("change", () => {
         content.classList.remove("linenums");
         content.innerText = originalContent;
         PR.prettyPrint();
-    }
-});
-
-dark.addEventListener("change", () => {
-    if (dark.checked) {
-        document.getElementsByTagName("head")[0]
-            .insertAdjacentHTML("beforeend", '<link id="darkTheme" href="/css/darkTheme.css" rel="stylesheet" />');
-        document.getElementById("lightTheme").outerHTML = "";
-    } else {
-        document.getElementsByTagName("head")[0]
-            .insertAdjacentHTML("beforeend", '<link id="lightTheme" href="/css/lightTheme.css" rel="stylesheet" />');
-        document.getElementById("darkTheme").outerHTML = "";
     }
 });

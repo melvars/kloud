@@ -100,7 +100,7 @@
             N.insertBefore(g, N.firstChild)
         })(H[l]);
         for (var S = H.length, F = [], l = 0, B = P.length; l < B; ++l) F.push("https://cdn.rawgit.com/google/code-prettify/master/loader/skins/" + encodeURIComponent(P[l]) + ".css");
-        F.push("/css/lightTheme.css");
+        //F.push("/css/lightTheme.css");
         (function (g) {
             function r(l) {
                 if (l !== x) {

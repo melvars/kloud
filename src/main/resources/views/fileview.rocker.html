@@ -1,9 +1,17 @@
+@import space.anity.DatabaseController
+@import space.anity.UserHandler
 @import io.javalin.*
 @args (String content, String filename, String extension, Context ctx)
 
 @css => {
 <link href="/css/fileview.css" rel="stylesheet">
 <link href="/css/markdown.css" rel="stylesheet">
+
+@if((new DatabaseController()).isDarkTheme((new UserHandler()).getVerifiedUserId(ctx))) {
+<link href="/css/darkTheme.css" rel="stylesheet"/>
+} else {
+<link href="/css/lightTheme.css" rel="stylesheet"/>
+}
 }
 
 @js => {
@@ -14,10 +22,9 @@
 }
 
 @layout.template("File " + filename, ctx, css, js) -> {
-<button class="switch" id="raw">Show raw</button>
+<button class="switch" id="raw">Show preview</button>
 <span class="settings" id="settings">
     <label for="code">Linecount</label><input id="code" type="checkbox">
-    <label for="dark">Dark mode</label><input id="dark" type="checkbox">
 </span>
 <pre class="prettyprint" id="content"><code class="lang-@extension">@content</code></pre>
 <textarea class="modify" id="modify"></textarea>

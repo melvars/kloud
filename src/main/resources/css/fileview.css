@@ -2,7 +2,7 @@ html, body {
     overflow: visible;
 }
 
-.preview, .modify, .switch, .settings {
+.modify, .switch, .settings {
     display: none;
 }
 

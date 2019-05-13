@@ -9,6 +9,10 @@ body {
     color: #d0cdc6
 }
 
+a {
+    color: #1a439b;
+}
+
 button {
     text-decoration-color: initial;
     background-color: #3d4043;
@@ -16,7 +20,7 @@ button {
     border-right-color: #595959;
     border-bottom-color: #595959;
     border-left-color: #595959;
-    color: #ffffff;
+    color: #fff;
 }
 
 input {
@@ -25,8 +29,58 @@ input {
 }
 
 /**
+    Markdown editor
+ */
+.editor-toolbar {
+    opacity: 1;
+    border: none;
+}
+
+.editor-toolbar a {
+    color: #e8e6e3 !important;
+}
+
+.editor-toolbar a.active, .editor-toolbar a:hover {
+    opacity: 1;
+    border-color: inherit;
+    background: #181a1b !important;
+    color: #e8e6e3 !important;
+}
+
+.editor-toolbar:hover, .editor-wrapper input.title:focus, .editor-wrapper input.title:hover {
+    opacity: 1
+}
+
+.editor-statusbar, .editor-toolbar {
+    color: #e8e6e3 !important;
+    background: #181a1b !important;
+}
+
+.editor-toolbar::after, .editor-toolbar::before {
+    opacity: 0;
+}
+
+.CodeMirror, .editor-preview-side {
+    background: inherit;
+    border: none;
+    color: #e8e6e3;
+}
+
+.editor-preview-side {
+    border-left: 1px solid #e8e6e3;
+}
+
+.CodeMirror-cursor {
+    border-left: 1px solid #e8e6e3;
+}
+
+/**
     Other stuff
  */
-tr:hover {
+table tr:hover {
     background-color: #121516 !important;
+}
+
+table thead tr:hover {
+    background-color: #181a1b !important;
 }
