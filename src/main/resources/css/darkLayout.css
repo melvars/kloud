@@ -1,6 +1,10 @@
 /**
     Main
  */
+* {
+    scrollbar-color: #2a2c2e #1c1e1f;
+}
+
 body {
     background-color: #181a1b;
 }
@@ -26,6 +30,31 @@ button {
 input {
     border-color: #575757;
     color: #e8e6e3;
+}
+
+::selection {
+    background-color: #005ccc;
+    color: #ffffff;
+}
+
+/**
+    Scrollbar
+ */
+::-webkit-scrollbar {
+    background-color: #1c1e1f;
+    color: #c5c1b9;
+}
+
+::-webkit-scrollbar-corner {
+    background-color: #181a1b;
+}
+
+::-webkit-scrollbar-corner {
+    background-color: #181a1b;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: #2a2c2e;
 }
 
 /**
