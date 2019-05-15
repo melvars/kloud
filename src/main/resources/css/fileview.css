@@ -2,6 +2,10 @@ html, body {
     overflow: visible;
 }
 
+.navigation {
+    position: relative;
+}
+
 .modify, .switch, .settings, .preview {
     display: none;
 }

@@ -2,6 +2,11 @@
     transition: all .2s linear;
 }
 
+.navigation {
+    position: relative;
+    padding: 0;
+}
+
 .navigation a {
     text-decoration: none;
     color: inherit;

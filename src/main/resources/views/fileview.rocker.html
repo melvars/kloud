@@ -22,6 +22,14 @@
 }
 
 @layout.template("File " + filename, ctx, css, js) -> {
+<div class="navigation">
+    <h3>
+        <a href="/"><i class="icon ion-md-home"></i></a>
+        <a href="../">Files</a>
+        <i class='icon ion-ios-arrow-forward'></i>
+        <a href="">@filename</a>
+    </h3>
+</div>
 <button class="switch" id="raw">Show preview</button>
 <span class="settings" id="settings">
     <label for="code">Linecount</label><input id="code" type="checkbox">

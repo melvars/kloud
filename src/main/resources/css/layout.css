@@ -22,6 +22,18 @@ button {
     color: #424242;
 }
 
+.navigation {
+    padding: 8px;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.navigation a {
+    text-decoration: none;
+    color: inherit;
+}
+
 .flex {
     display: flex;
     flex-flow: wrap column;
