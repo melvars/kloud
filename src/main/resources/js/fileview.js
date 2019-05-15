@@ -14,7 +14,6 @@ const originalContent = content.innerText;
 if (extension === "html") {
     preview.src = "data:text/html;charset=utf-8," + encodeURI(originalContent);
 
-    preview.style.display = "none";
     raw.style.display = "block";
     content.style.display = "block";
 

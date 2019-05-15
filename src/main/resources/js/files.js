@@ -6,19 +6,18 @@ drop.addEventListener('dragover', e => {
     e.stopPropagation();
     e.preventDefault();
     e.dataTransfer.dropEffect = 'copy';
-    drop.style.background = "rgba(12,99,250,0.3)";
+    drop.classList.add("hover");
 });
 
 drop.addEventListener('dragleave', () =>
-    drop.style.background = "white"
+    drop.classList.remove("hover")
 );
 
 drop.addEventListener('drop', e => {
     e.stopPropagation();
     e.preventDefault();
-    drop.style.background = "white";
+    drop.classList.remove("hover");
     const items = e.dataTransfer.items;
-    const uploadedFiles = [];
 
     for (let i = 0; i < items.length; i++) {
         const item = items[i].webkitGetAsEntry();
@@ -43,56 +42,17 @@ drop.addEventListener('drop', e => {
 
         setListeners();
 
-        // TODO: Add empty directory upload support
-        const iterateFiles = subItem => {
-            if (subItem.isDirectory) {
-                let directoryReader = subItem.createReader();
-                directoryReader.readEntries(entries => {
-                    entries.forEach(entry => {
-                        iterateFiles(entry);
-                    });
-                });
-            } else {
-                subItem.file(subFile => {
-                    // TODO: Add support for nested directory upload with more than 1 layer - via webkitRelativePath on firefox?
-                    if (!uploadedFiles.includes(`/${path}/${file.name}/${subFile.name}`.clean())) {
-                        const formData = new FormData();
-                        const request = new XMLHttpRequest();
+        iterateFiles(item, files => {
+            const request = new XMLHttpRequest();
+            const formData = new FormData();
 
-                        request.upload.onprogress = e => {
-                            if (e.lengthComputable) {
-                                console.log(`${subFile.name}: ${e.loaded / e.total * 100}%`)
-                            }
-                        };
+            for (const file of files)
+                formData.append('file', file);
 
-                        uploadedFiles.push(`/${path}/${file.name}/${subFile.name}`.clean());
-                        formData.append("file", subFile);
-                        if (subFile.webkitRelativePath === "") request.open("POST", `/upload/${path}/${file.name}`.clean());
-                        else request.open("POST", `/upload/${path}`.clean());
-                        request.send(formData);
-                    }
-                })
-            }
-        };
+            request.open('POST', `/upload/${path}`.clean(), true);
+            request.send(formData);
 
-        if (item.isDirectory) {
-            iterateFiles(item);
-        } else {
-            if (!uploadedFiles.includes(`/${path}/${file.name}`.clean())) {
-                const formData = new FormData();
-                const request = new XMLHttpRequest();
-
-                request.upload.onprogress = e => {
-                    if (e.lengthComputable) {
-                        console.log(`${file.name}: ${e.loaded / e.total * 100}%`)
-                    }
-                };
-
-                formData.append("file", file);
-                request.open("POST", `/upload/${path}`.clean());
-                request.send(formData);
-            }
-        }
+        });
     }
 
     function bytesToSize(bytes) {
@@ -138,7 +98,7 @@ function setListeners() {
             const audio = ["mp3", "m4a", "wav", "ogg"];
 
             const filename = element.getAttribute("data-path");
-            const extension = /(?:\.([^.]+))?$/.exec(filename)[1].toLowerCase();
+            const extension = (/(?:\.([^.]+))?$/.exec(filename)[1] || "").toLowerCase();
 
             if (images.includes(extension)) {
                 element.setAttribute("data-bp", filename);
@@ -251,7 +211,52 @@ function setListeners() {
 setListeners();
 
 /**
+ * Iterates over files and directories
+ * @param item
+ * @param callback
+ */
+// TODO: Add empty directory upload support
+const files = [];
+
+function iterateFiles(item, callback) {
+    console.log(item);
+    (function iterate(subItem) {
+        console.log(subItem);
+        if (subItem.isDirectory) {
+            const directoryReader = subItem.createReader();
+            directoryReader.readEntries(entries => {
+                entries.forEach(entry => {
+                    entry.name = entry.fullPath;
+                    iterate(entry)
+                })
+            });
+        } else
+            subItem.file(file => {
+                const newName = subItem.fullPath.charAt(0) === '/' ? subItem.fullPath.substr(1) : subItem.fullPath;
+                console.log(newName);
+                files.push(new File([file], newName, {
+                    lastModified: file.lastModified,
+                    lastModifiedDate: file.lastModifiedDate,
+                    size: file.size,
+                    webkitRelativePath: file.webkitRelativePath,
+                    type: file.type,
+                }));
+            }, err => console.error(err));
+    })(item);
+
+    // REMEMBER: This is a quite ugly solution but due to the almost inexistent filesystem support in most browsers
+    //  we need to use this!
+    setTimeout(() => {
+        console.log(files);
+        callback(files.flat(100))
+    }, 100) // max iterate time the pc may need: 100ms
+}
+
+/**
  * Set up sort features
+ * @param table
+ * @param col
+ * @param ascending
  */
 function sortTable(table, col, ascending) {
     const tb = table.tBodies[0];

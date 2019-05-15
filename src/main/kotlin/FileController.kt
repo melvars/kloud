@@ -98,20 +98,22 @@ class FileController {
      * Saves multipart media data into requested directory
      */
     fun upload(ctx: Context) {
-        val firstParam = ctx.splat(0) ?: ""
-        ctx.uploadedFiles("file").forEach { (_, content, name, _) ->
-            val path = if (firstParam.isEmpty()) name else "$firstParam/$name"
 
+        ctx.uploadedFiles("file").forEach { (_, content, name, _) ->
+            val fixedName = name.replace(":", "/") // "fix" for Firefox..
             val userId = userHandler.getVerifiedUserId(ctx)
             var addPath = ""
-            path.split("/").forEach {
+
+            // Directory sharing
+            fixedName.split("/").forEach {
                 addPath += "$it/"
-                if (!path.endsWith(it)) databaseController.addFile(addPath, userId, true)
+                if (!fixedName.endsWith(it)) databaseController.addFile(addPath, userId, true)
             }
-            if (databaseController.addFile(path, userId)) {
+
+            if (databaseController.addFile(fixedName, userId)) {
                 FileUtil.streamToFile(
                     content,
-                    "$fileHome/$userId/$path"
+                    "$fileHome/$userId/$fixedName"
                 )
             }
         }
@@ -186,6 +188,7 @@ class FileController {
             }
         } else {
             log.info("Unknown file!")
+            throw NotFoundResponse("Shared file couldn't be found.")
         }
     }
 

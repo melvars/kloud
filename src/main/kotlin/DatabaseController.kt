@@ -326,8 +326,7 @@ class DatabaseController {
                     false
                 }
             } catch (err: Exception) {
-                if (!isDirectoryBool) error(err)
-                true // Ugly solution
+                error(err)
             }
         }
     }

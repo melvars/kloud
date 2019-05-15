@@ -75,6 +75,10 @@ colgroup col:nth-child(7) {
     z-index: -1;
 }
 
+.drop.hover {
+    background: rgba(12, 99, 250, 0.3) !important;
+}
+
 .share {
     font-size: 20px;
     background-color: inherit;
