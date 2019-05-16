@@ -2,18 +2,18 @@
  * Drag and drop
  */
 const drop = document.getElementById("drop");
-drop.addEventListener('dragover', e => {
+drop.addEventListener("dragover", e => {
     e.stopPropagation();
     e.preventDefault();
-    e.dataTransfer.dropEffect = 'copy';
+    e.dataTransfer.dropEffect = "copy";
     drop.classList.add("hover");
 });
 
-drop.addEventListener('dragleave', () =>
+drop.addEventListener("dragleave", () =>
     drop.classList.remove("hover")
 );
 
-drop.addEventListener('drop', e => {
+drop.addEventListener("drop", e => {
     e.stopPropagation();
     e.preventDefault();
     drop.classList.remove("hover");
@@ -42,45 +42,50 @@ drop.addEventListener('drop', e => {
 
         setListeners();
 
-        iterateFiles(item, files => {
-            const progress = document.getElementById("progress");
-            const request = new XMLHttpRequest();
-            const formData = new FormData();
-
-            for (const file of files)
-                formData.append('file', file);
-
-            request.upload.onprogress = e => {
-                if (e.lengthComputable) {
-                    progress.style.display = "block";
-                    progress.innerText = `Uploading ${files.length} file(s): ${(e.loaded / e.total * 100).toFixed(2)}%`;
-                }
-            };
-
-            request.onreadystatechange = () => {
-                if (request.readyState === 4) {
-                    if (request.status === 200) {
-                        progress.innerText = "Finished uploading!";
-                        setTimeout(() => progress.style.display = "none", 3000)
-                    } else {
-                        progress.style.color = "red";
-                        progress.innerText = "An error occurred :(";
-                    }
-                }
-            };
-
-            request.open('POST', `/upload/${path}`.clean(), true);
-            request.send(formData);
-        });
-    }
-
-    function bytesToSize(bytes) {
-        const sizes = ['B', 'KiB', 'MiB', 'GiB', 'TiB'];
-        if (bytes === 0) return '0 Byte';
-        const i = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)));
-        return Math.round(bytes / Math.pow(1024, i), 2) + ' ' + sizes[i];
+        iterateFiles(item, files => upload(files))
     }
 }, false);
+
+document.getElementById("directory").addEventListener("change", () => {
+    const files = document.getElementById("directory").files;
+    let dirName = "";
+
+    for (const file of files) dirName = file.webkitRelativePath.slice(0, file.webkitRelativePath.indexOf("/")) + "/";
+
+    const date = new Date();
+    const row = document.getElementById("table").insertRow(-1);
+    row.setAttribute("data-href", dirName);
+    row.insertCell(0).innerHTML = "<td><i class='icon ion-md-folder'></i></td>";
+    row.insertCell(1).innerHTML = dirName;
+    row.insertCell(2).innerHTML = "? B";
+    row.insertCell(3).innerHTML = `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
+    row.insertCell(4).innerHTML = "<td><button class='share'><i class='icon ion-md-share'></i></button></td>";
+    row.insertCell(5).innerHTML = "<button class='downloadButton'><a class='download' href='" + dirName + "' download='" + dirName + "'><i class='icon ion-md-download'></i></a></button>";
+    row.insertCell(6).innerHTML = "<td><button class='delete'><i class='icon ion-md-trash'></i></button></td>";
+    setListeners();
+
+    upload(files);
+});
+
+document.getElementById("file").addEventListener("change", () => {
+    const files = document.getElementById("file").files;
+
+    for (const file of files) {
+        const date = new Date();
+        const row = document.getElementById("table").insertRow(-1);
+        row.setAttribute("data-href", file.name);
+        row.insertCell(0).innerHTML = "<td><i class='icon ion-md-folder'></i></td>";
+        row.insertCell(1).innerHTML = file.name;
+        row.insertCell(2).innerHTML = bytesToSize(file.size);
+        row.insertCell(3).innerHTML = `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
+        row.insertCell(4).innerHTML = "<td><button class='share'><i class='icon ion-md-share'></i></button></td>";
+        row.insertCell(5).innerHTML = "<button class='downloadButton'><a class='download' href='" + file.name + "' download='" + file.name + "'><i class='icon ion-md-download'></i></a></button>";
+        row.insertCell(6).innerHTML = "<td><button class='delete'><i class='icon ion-md-trash'></i></button></td>";
+    }
+    setListeners();
+
+    upload(files);
+});
 
 /**
  * Set up listeners
@@ -230,6 +235,53 @@ function setListeners() {
 setListeners();
 
 /**
+ * Uploads an file array
+ * @param files
+ */
+function upload(files) {
+    const progress = document.getElementById("progress");
+    const request = new XMLHttpRequest();
+    const formData = new FormData();
+
+    for (const file of files)
+        formData.append('file', file);
+
+    request.upload.onprogress = e => {
+        if (e.lengthComputable) {
+            progress.style.display = "block";
+            progress.innerText = `Uploading ${files.length} file(s): ${(e.loaded / e.total * 100).toFixed(2)}%`;
+        }
+    };
+
+    request.onreadystatechange = () => {
+        if (request.readyState === 4) {
+            if (request.status === 200) {
+                progress.innerText = "Finished uploading!";
+                setTimeout(() => progress.style.display = "none", 3000)
+            } else {
+                progress.style.color = "red";
+                progress.innerText = "An error occurred :(";
+            }
+        }
+    };
+
+    request.open('POST', `/upload/${path}`.clean(), true);
+    request.send(formData);
+}
+
+/**
+ * Returns bytes as human readable string
+ * @param bytes
+ * @returns {string}
+ */
+function bytesToSize(bytes) {
+    const sizes = ['B', 'KiB', 'MiB', 'GiB', 'TiB'];
+    if (bytes === 0) return '0 Byte';
+    const i = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)));
+    return Math.round(bytes / Math.pow(1024, i), 2) + ' ' + sizes[i];
+}
+
+/**
  * Iterates over files and directories
  * TODO: Add empty directory upload support
  * @param item
@@ -237,7 +289,6 @@ setListeners();
  */
 function iterateFiles(item, callback) {
     const files = [];
-    console.log(item);
     (function iterate(subItem) {
         if (subItem.isDirectory) {
             const directoryReader = subItem.createReader();
@@ -249,7 +300,8 @@ function iterateFiles(item, callback) {
             });
         } else
             subItem.file(file => {
-                const newName = subItem.fullPath.charAt(0) === '/' ? subItem.fullPath.substr(1) : subItem.fullPath;
+                const newName = location.pathname.split('/').slice(2).join('/')
+                    + (subItem.fullPath.charAt(0) === '/' ? subItem.fullPath.substr(1) : subItem.fullPath);
                 files.push(new File([file], newName, {
                     lastModified: file.lastModified,
                     lastModifiedDate: file.lastModifiedDate,

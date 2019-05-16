@@ -2,7 +2,34 @@
     transition: all .2s linear;
 }
 
+input[type="file"] {
+    display: none;
+}
+
+.upload {
+    position: absolute;
+    margin: 20px;
+    right: 0;
+    top: 0;
+    padding: 8px;
+    border: 1px solid #ccc;
+    font-size: 1em;
+    width: 1em;
+    text-align: center;
+    line-height: 1em;
+    cursor: pointer;
+    border-radius: 100px;
+}
+
+.upload[for="file"] {
+    right: 3em;
+}
+
 .navigation {
+    white-space: nowrap;
+    max-width: calc(100% - 6em);
+    overflow: hidden;
+    text-overflow: ellipsis;
     position: relative;
     padding: 0;
 }
@@ -14,8 +41,9 @@
 
 .progress {
     display: none;
-    color: green;
     float: right;
+    color: green;
+    margin-right: 6em;
 }
 
 table {
