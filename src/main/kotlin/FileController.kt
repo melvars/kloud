@@ -98,13 +98,11 @@ class FileController {
      * Saves multipart media data into requested directory
      */
     fun upload(ctx: Context) {
-
         ctx.uploadedFiles("file").forEach { (_, content, name, _) ->
             val fixedName = name.replace(":", "/") // "fix" for Firefox..
             val userId = userHandler.getVerifiedUserId(ctx)
             var addPath = ""
 
-            // Directory sharing
             fixedName.split("/").forEach {
                 addPath += "$it/"
                 if (!fixedName.endsWith(it)) databaseController.addFile(addPath, userId, true)
@@ -117,25 +115,53 @@ class FileController {
                 )
             }
         }
+
+        ctx.json("success")
     }
 
-    /*
+    /**
+     * Re-indexes every file in the users directory
+     */
     fun indexAll(ctx: Context) {
-        Files.list(Paths.get("$fileHome/${getVerifiedUserId(ctx)}").forEach {
-            // TODO: Add file indexing function
+        val userId = userHandler.getVerifiedUserId(ctx)
+
+        fun recursiveIndex(filePath: String = "") {
+            Files.list(Paths.get("$fileHome/$userId$filePath")).forEach {
+                val filename = it.toString().drop("$fileHome/$userId".length + 1)
+
+                if (it.toFile().isDirectory) {
+                    databaseController.addFile("$filename/", userId, true)
+                    recursiveIndex("/$filename")
+                } else databaseController.addFile(filename, userId, false)
+            }
         }
+
+        recursiveIndex()
     }
-    */
 
     /**
      * Deletes the requested file
      */
-    fun delete(ctx: Context) { // TODO: Fix deleting of directories
+    fun delete(ctx: Context) {
         val userId = userHandler.getVerifiedUserId(ctx)
         if (userId > 0) {
             val path = ctx.splat(0) ?: ""
-            File("$fileHome/$userId/$path").delete()  // File.deleteRecursively() kind of "crashes" server but deletes folder :'(
-            databaseController.deleteFile(path, userId)  // kind of works for deleting directories
+            val file = File("$fileHome/$userId/$path")
+
+            fun deleteDirectory(recursiveFile: File) {
+                val fileList = recursiveFile.listFiles()
+                if (fileList != null) {
+                    for (subFile in fileList) {
+                        deleteDirectory(subFile)
+                    }
+                }
+                recursiveFile.delete()
+            }
+
+            if (file.isDirectory) {
+                deleteDirectory(file)
+            } else file.delete()
+            databaseController.deleteFile(path, userId)
         }
     }
 
@@ -146,6 +172,7 @@ class FileController {
         val userId = userHandler.getVerifiedUserId(ctx)
         val shareType = ctx.queryParam("type").toString()
         val firstParam = ctx.splat(0) ?: ""
+        log.info(shareType)
         if (userId > 0) {
             val path = "$firstParam${if (shareType == "dir") "/" else ""}"
             val accessId = databaseController.getAccessId(path, userId)

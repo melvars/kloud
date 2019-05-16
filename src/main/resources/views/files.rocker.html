@@ -18,25 +18,27 @@
 @layout.template(files.size() + " Files", ctx, css, js) -> {
 <div class="drop" id="drop">
     <h3 class="navigation">
+        @if (!isShared) {
         <a href="/"><i class="icon ion-md-home"></i></a>
         <a href="/files/">Files</a>
 
         @if (!path.isEmpty()) {
-        <i class='icon ion-ios-arrow-forward'></i>
+        <i class="icon ion-ios-arrow-forward"></i>
         }
-
-        @if (!isShared) {
         @for (int i = 0; i < path.split("/").length - 1; i++) {
         <a href='@(new String(new char[path.split("/").length - i - 1]).replace("\0", "../"))'>@path.split("/")[i]</a>
-        <i class='icon ion-ios-arrow-forward'></i>
+        <i class="icon ion-ios-arrow-forward"></i>
         }
         @if (path.split("/").length > 0) {
-        <!-- TEST 2 -->
         <a href="">@(path.split("/")[path.split("/").length - 1])</a>
         }
         } else { <!-- is shared -->
+        <a href="/"><i class="icon ion-md-home"></i></a>
+        <a href="">Shared</a>
+        <i class="icon ion-ios-arrow-forward"></i>
         <a href="">@(path.split("/")[path.split("/").length - 1])</a>
         }
+        <span class="progress" id="progress"></span>
     </h3>
 
     <table id="table">

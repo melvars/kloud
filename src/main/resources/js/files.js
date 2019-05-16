@@ -43,15 +43,34 @@ drop.addEventListener('drop', e => {
         setListeners();
 
         iterateFiles(item, files => {
+            const progress = document.getElementById("progress");
             const request = new XMLHttpRequest();
             const formData = new FormData();
 
             for (const file of files)
                 formData.append('file', file);
 
+            request.upload.onprogress = e => {
+                if (e.lengthComputable) {
+                    progress.style.display = "block";
+                    progress.innerText = `Uploading ${files.length} file(s): ${(e.loaded / e.total * 100).toFixed(2)}%`;
+                }
+            };
+
+            request.onreadystatechange = () => {
+                if (request.readyState === 4) {
+                    if (request.status === 200) {
+                        progress.innerText = "Finished uploading!";
+                        setTimeout(() => progress.style.display = "none", 3000)
+                    } else {
+                        progress.style.color = "red";
+                        progress.innerText = "An error occurred :(";
+                    }
+                }
+            };
+
             request.open('POST', `/upload/${path}`.clean(), true);
             request.send(formData);
-
         });
     }
 
@@ -212,16 +231,14 @@ setListeners();
 
 /**
  * Iterates over files and directories
+ * TODO: Add empty directory upload support
  * @param item
  * @param callback
  */
-// TODO: Add empty directory upload support
-const files = [];
-
 function iterateFiles(item, callback) {
+    const files = [];
     console.log(item);
     (function iterate(subItem) {
-        console.log(subItem);
         if (subItem.isDirectory) {
             const directoryReader = subItem.createReader();
             directoryReader.readEntries(entries => {
@@ -233,7 +250,6 @@ function iterateFiles(item, callback) {
         } else
             subItem.file(file => {
                 const newName = subItem.fullPath.charAt(0) === '/' ? subItem.fullPath.substr(1) : subItem.fullPath;
-                console.log(newName);
                 files.push(new File([file], newName, {
                     lastModified: file.lastModified,
                     lastModifiedDate: file.lastModifiedDate,

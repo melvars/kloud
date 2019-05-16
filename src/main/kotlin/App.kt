@@ -147,6 +147,11 @@ fun main(args: Array<String>) {
         post("/upload/*", fileController::upload, roles(Roles.USER))
 
         /**
+         * Indexes every file of the user into the database
+         */
+        get("/index", fileController::indexAll, roles(Roles.USER))
+
+        /**
          * Deletes file
          */
         post("/delete/*", fileController::delete, roles(Roles.USER))

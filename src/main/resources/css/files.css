@@ -12,6 +12,12 @@
     color: inherit;
 }
 
+.progress {
+    display: none;
+    color: green;
+    float: right;
+}
+
 table {
     table-layout: fixed;
     width: 100%;

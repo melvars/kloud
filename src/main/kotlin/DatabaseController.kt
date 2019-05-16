@@ -322,7 +322,7 @@ class DatabaseController {
                     }
                     true
                 } else {
-                    if (!isDirectoryBool) log.warning("File already exists!")
+                    if (!isDirectoryBool && debug) log.warning("File already exists!")
                     false
                 }
             } catch (err: Exception) {
