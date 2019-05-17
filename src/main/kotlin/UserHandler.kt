@@ -3,11 +3,11 @@ package space.anity
 import io.javalin.*
 import io.javalin.rendering.template.TemplateUtil.model
 import org.joda.time.*
-import java.util.logging.*
+import org.slf4j.*
 import kotlin.math.*
 
 class UserHandler {
-    private val log = Logger.getLogger(this.javaClass.name)
+    private val log = LoggerFactory.getLogger(this.javaClass.name)
 
     /**
      * Renders the login page

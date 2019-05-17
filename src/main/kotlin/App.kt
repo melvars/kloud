@@ -3,23 +3,23 @@ package space.anity
 import com.fizzed.rocker.*
 import com.fizzed.rocker.runtime.*
 import io.javalin.*
-import io.javalin.Handler
 import io.javalin.apibuilder.ApiBuilder.*
 import io.javalin.rendering.*
 import io.javalin.rendering.template.TemplateUtil.model
 import io.javalin.security.*
 import io.javalin.security.SecurityUtil.roles
+import org.slf4j.*
 import java.net.*
-import java.util.logging.*
 import kotlin.system.*
 
-// TODO: Add abstract and secure file home support for windows/BSD/macOS
 const val debug = true
+var silent = true
+// TODO: Add abstract and secure file home support for windows/BSD/macOS
 val fileHome = if (System.getProperty("os.name") != "Linux" || debug) "files" else "/usr/share/kloud/files"
 val databaseController = DatabaseController()
 val userHandler = UserHandler()
 val fileController = FileController()
-private val log = Logger.getLogger("App.kt")
+private val log = LoggerFactory.getLogger("App.kt")
 
 fun main(args: Array<String>) {
     val app = startServer(args)
@@ -195,15 +195,25 @@ fun startServer(args: Array<String>): Javalin {
 
     args.forEachIndexed { index, element ->
         run {
+            val wantsDebug = element.startsWith("-d") || element.startsWith("--debug")
             val wantsPort = element.startsWith("-p") || element.startsWith("--port")
             val wantsHelp = element.startsWith("-h") || element.startsWith("--help")
 
             if (wantsPort) {
                 val portArgument = args[index + 1].toInt()
                 if (portArgument in 1..65535) port = portArgument
-            } else if (wantsHelp) {
+            }
+            if (wantsDebug) {
+                silent = false
+            }
+            if (wantsHelp) {
                 runServer = false
-                log.info("Help:\nUse -p or --port to specify a port.")
+                log.info(
+                    "Help: \n" +
+                            "Use -p or --port to specify a port\n" +
+                            "Use -d or --debug to enable debug mode\n" +
+                            "Use -h or --help to show this help message"
+                )
             }
         }
     }

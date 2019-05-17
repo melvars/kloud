@@ -6,14 +6,14 @@ import io.javalin.rendering.template.TemplateUtil.model
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.*
 import org.joda.time.*
+import org.slf4j.*
 import java.sql.*
-import java.util.logging.*
 
 class DatabaseController {
     private val dbFileLocation =
         if (System.getProperty("os.name") != "Linux" || debug) "main.db" else "/usr/share/kloud/main.db"
     val db: Database = Database.connect("jdbc:sqlite:$dbFileLocation", "org.sqlite.JDBC")
-    private val log = Logger.getLogger(this.javaClass.name)
+    private val log = LoggerFactory.getLogger(this.javaClass.name)
 
     /**
      * Database table indexing the file locations
@@ -118,7 +118,7 @@ class DatabaseController {
                 }
                 true
             } catch (_: Exception) {
-                log.warning("User already exists!")
+                log.warn("User already exists!")
                 false
             }
         }
@@ -322,7 +322,7 @@ class DatabaseController {
                     }
                     true
                 } else {
-                    if (!isDirectoryBool && debug) log.warning("File already exists!")
+                    if (!isDirectoryBool && debug) log.warn("File already exists!")
                     false
                 }
             } catch (err: Exception) {
@@ -340,7 +340,7 @@ class DatabaseController {
                 // TODO: Think of new solution for directory deleting (instead of wildcards)
                 FileLocation.deleteWhere { (FileLocation.path like "$fileLocation%") and (FileLocation.userId eq userId) }
             } catch (_: Exception) {
-                log.warning("File does not exist!")
+                log.warn("File does not exist!")
             }
         }
     }
@@ -399,7 +399,7 @@ class DatabaseController {
                 } else
                     ReturnFileData(-1, "", false)
             } catch (_: Exception) {
-                log.warning("File does not exist!")
+                log.warn("File does not exist!")
                 ReturnFileData(-1, "", false)
             }
         }

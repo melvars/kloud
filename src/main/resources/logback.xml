@@ -1,11 +1,13 @@
 <configuration>
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <filter class="space.anity.LogFilter"></filter>
+
         <encoder>
-            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+            <pattern>%-5level %logger{36} - %msg%n</pattern>
         </encoder>
     </appender>
 
-    <root level="off">
+    <root>
         <appender-ref ref="STDOUT"/>
     </root>
 </configuration>

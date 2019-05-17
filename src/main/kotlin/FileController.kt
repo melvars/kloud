@@ -3,14 +3,14 @@ package space.anity
 import io.javalin.*
 import io.javalin.core.util.*
 import io.javalin.rendering.template.TemplateUtil.model
+import org.slf4j.*
 import java.io.*
 import java.nio.charset.*
 import java.nio.file.*
 import java.text.*
-import java.util.logging.*
 
 class FileController {
-    private val log = Logger.getLogger(this.javaClass.name)
+    private val log = LoggerFactory.getLogger(this.javaClass.name)
 
     /**
      * Crawls the requested file and either renders the directory view or the file view
@@ -172,7 +172,6 @@ class FileController {
         val userId = userHandler.getVerifiedUserId(ctx)
         val shareType = ctx.queryParam("type").toString()
         val firstParam = ctx.splat(0) ?: ""
-        log.info(shareType)
         if (userId > 0) {
             val path = "$firstParam${if (shareType == "dir") "/" else ""}"
             val accessId = databaseController.getAccessId(path, userId)
@@ -214,7 +213,7 @@ class FileController {
                 )
             }
         } else {
-            log.info("Unknown file!")
+            log.warn("Unknown file!")
             throw NotFoundResponse("Shared file couldn't be found.")
         }
     }
