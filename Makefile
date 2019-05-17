@@ -4,6 +4,8 @@ all: clean build
 
 clean:
 	$(RM) -rv build/ out/ *.class
+	$(RM) -rv /usr/bin/kloud/
+	$(RM) -rv /usr/share/kloud/kloud-*-all.jar
 
 build:
 	gradle build

@@ -15,7 +15,7 @@ plugins {
 }
 
 group "space.anity"
-version "0.2-BETA"
+version "1.0"
 
 apply plugin: 'java'
 apply plugin: 'kotlin'

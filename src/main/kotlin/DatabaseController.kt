@@ -135,7 +135,8 @@ class DatabaseController {
                 ) {
                     usernameString == UserRegistration.select { UserRegistration.username eq usernameString }.map { it[UserRegistration.username] }[0]
                 } else false
-            } catch (_: Exception) {
+            } catch (err: Exception) {
+                log.error(err.toString())
                 false
             }
         }
@@ -157,7 +158,8 @@ class DatabaseController {
                         it[username] = usernameString
                         it[token] = tokenString
                     }
-                } catch (_: Exception) {
+                } catch (err: Exception) {
+                    log.error(err.toString())
                     error = true
                 }
             }
@@ -190,7 +192,8 @@ class DatabaseController {
                 val passwordHash =
                     UserData.select { UserData.username eq usernameString }.map { it[UserData.password] }[0]
                 BCrypt.verifyer().verify(passwordString.toCharArray(), passwordHash).verified
-            } catch (_: Exception) {
+            } catch (err: Exception) {
+                log.error(err.toString())
                 false
             }
         }
@@ -203,7 +206,8 @@ class DatabaseController {
         return transaction {
             try {
                 UserData.select { UserData.id eq userId }.map { it[UserData.username] }[0]
-            } catch (_: Exception) {
+            } catch (err: Exception) {
+                log.error(err.toString())
                 ""
             }
         }
@@ -216,7 +220,8 @@ class DatabaseController {
         return transaction {
             try {
                 UserData.select { UserData.verification eq verificationId }.map { it[UserData.id] }[0]
-            } catch (_: Exception) {
+            } catch (err: Exception) {
+                log.error(err.toString())
                 -1
             }
         }
@@ -229,7 +234,8 @@ class DatabaseController {
         return transaction {
             try {
                 UserData.select { UserData.id eq userId }.map { it[UserData.darkTheme] }[0]
-            } catch (_: Exception) {
+            } catch (err: Exception) {
+                log.error(err.toString())
                 false
             }
         }
@@ -244,8 +250,8 @@ class DatabaseController {
                 UserData.update({ (UserData.id eq userId) }) {
                     it[darkTheme] = !isDarkTheme(userId)
                 }
-            } catch (_: Exception) {
-                //
+            } catch (err: Exception) {
+                log.error(err.toString())
             }
         }
     }
@@ -257,7 +263,8 @@ class DatabaseController {
         return transaction {
             try {
                 UserData.select { UserData.username eq usernameString }.map { it[UserData.verification] }[0]
-            } catch (_: Exception) {
+            } catch (err: Exception) {
+                log.error(err.toString())
                 ""
             }
         }
@@ -270,7 +277,8 @@ class DatabaseController {
         return transaction {
             try {
                 UserData.select { UserData.username eq usernameString }.map { it[UserData.id] }[0]
-            } catch (_: Exception) {
+            } catch (err: Exception) {
+                log.error(err.toString())
                 -1
             }
         }
@@ -301,7 +309,8 @@ class DatabaseController {
                     }
                 }
                 userRoles
-            } catch (_: Exception) {
+            } catch (err: Exception) {
+                log.error(err.toString())
                 listOf(Roles.GUEST)
             }
         }
@@ -339,7 +348,8 @@ class DatabaseController {
             try {
                 // TODO: Think of new solution for directory deleting (instead of wildcards)
                 FileLocation.deleteWhere { (FileLocation.path like "$fileLocation%") and (FileLocation.userId eq userId) }
-            } catch (_: Exception) {
+            } catch (err: Exception) {
+                log.error(err.toString())
                 log.warn("File does not exist!")
             }
         }
@@ -355,7 +365,8 @@ class DatabaseController {
                     it[isShared] = true
                 }
                 FileLocation.select { (FileLocation.path eq fileLocation) and (FileLocation.userId eq userId) }.map { it[FileLocation.accessId] }[0]
-            } catch (_: Exception) {
+            } catch (err: Exception) {
+                log.error(err.toString())
                 ""
             }
         }
@@ -376,7 +387,8 @@ class DatabaseController {
                         (FileLocation.path eq "${fileData.first.first}${filename.substring(1)}") and (FileLocation.userId eq fileData.first.second)
                     }.map { it[FileLocation.accessId] }[0]
                 else ""
-            } catch (_: Exception) {
+            } catch (err: Exception) {
+                log.error(err.toString())
                 ""
             }
         }
@@ -398,7 +410,8 @@ class DatabaseController {
                     ReturnFileData(userId, fileLocation, isDir)
                 } else
                     ReturnFileData(-1, "", false)
-            } catch (_: Exception) {
+            } catch (err: Exception) {
+                log.error(err.toString())
                 log.warn("File does not exist!")
                 ReturnFileData(-1, "", false)
             }
@@ -412,7 +425,8 @@ class DatabaseController {
         return transaction {
             try {
                 General.selectAll().map { it[General.isSetup] }[0]
-            } catch (_: Exception) {
+            } catch (err: Exception) {
+                log.error(err.toString())
                 false
             }
         }
@@ -478,7 +492,7 @@ class DatabaseController {
                 }
             }
         } else {
-            log.info("Already initialized Database.")
+            log.warn("Already initialized Database.")
         }
     }
 

@@ -12,8 +12,9 @@ import org.slf4j.*
 import java.net.*
 import kotlin.system.*
 
-const val debug = true
+const val debug = false
 var silent = true
+var port = 7000
 // TODO: Add abstract and secure file home support for windows/BSD/macOS
 val fileHome = if (System.getProperty("os.name") != "Linux" || debug) "files" else "/usr/share/kloud/files"
 val databaseController = DatabaseController()
@@ -23,6 +24,7 @@ private val log = LoggerFactory.getLogger("App.kt")
 
 fun main(args: Array<String>) {
     val app = startServer(args)
+    log.info("Successfully started server on port $port")
 
     // Set up templating
     RockerRuntime.getInstance().isReloading = false
@@ -191,7 +193,6 @@ fun roleManager(handler: Handler, ctx: Context, permittedRoles: Set<Role>) {
  */
 fun startServer(args: Array<String>): Javalin {
     var runServer = true
-    var port = 7000
 
     args.forEachIndexed { index, element ->
         run {
@@ -226,7 +227,8 @@ fun startServer(args: Array<String>): Javalin {
                 disableStartupBanner()
             }.start()
         } catch (_: Exception) {
-            throw PortUnreachableException("Port already in use!")
+            log.info("Port $port already in use!")
+            exitProcess(1)
         }
     } else exitProcess(1)
 }

@@ -6,13 +6,19 @@ import ch.qos.logback.core.filter.*
 import ch.qos.logback.core.spi.*
 
 class LogFilter : Filter<ILoggingEvent>() {
-    private val level = Level.ERROR
-
     override fun decide(event: ILoggingEvent): FilterReply {
-        return if (event.level.isGreaterOrEqual(level)) {
-            FilterReply.NEUTRAL
+        val isUseful = event.loggerName !in
+                listOf(
+                    "Exposed",
+                    "io.javalin.Javalin",
+                    "com.fizzed.rocker.runtime.RockerRuntime",
+                    "org.eclipse.jetty.util.log"
+                )
+
+        return if (event.level == Level.INFO && isUseful) {
+            FilterReply.ACCEPT
         } else {
-            if (!silent || event.message.contains("Help")) {
+            if ((!silent || event.message.contains("Help")) && event.level != Level.DEBUG) {
                 FilterReply.ACCEPT
             } else {
                 FilterReply.DENY
