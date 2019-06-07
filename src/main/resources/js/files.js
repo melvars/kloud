@@ -92,7 +92,7 @@ document.getElementById("file").addEventListener("change", () => {
  */
 function setListeners() {
     if (isShared === "true") {
-        const accessId = location.pathname === '/shared' ? location.search.split('=')[1] : undefined;
+        const accessId = location.pathname === '/file/shared' ? location.search.split('=')[1] : undefined;
         document.querySelectorAll('[data-path], [data-href]').forEach(element => {
             element.addEventListener('click', () => {
                 const filename = '/' + (element.getAttribute('data-path') || element.getAttribute('data-href'));
@@ -101,11 +101,11 @@ function setListeners() {
                     const formData = new FormData();
                     formData.append('accessId', accessId);
                     formData.append('filename', filename);
-                    request.open('POST', '/share', true);
+                    request.open('POST', '/file/share', true);
                     request.onload = () => {
                         if (request.status === 200 && request.readyState === 4) {
                             if (request.responseText)
-                                window.location = `/shared?id=${request.responseText}`;
+                                window.location = `/file/shared?id=${request.responseText}`;
                             else alert('File not found!');
                         }
                     };
@@ -187,7 +187,7 @@ function setListeners() {
             const parent = e.target.closest("tr");
             const filename = parent.getAttribute("data-href") || parent.getAttribute("data-path");
             if (confirm(`Do you really want to delete: ${filename}?`)) {
-                request.open("POST", `/delete/${path}/${filename}`.clean(), true);
+                request.open("POST", `/file/delete/${path}/${filename}`.clean(), true);
                 request.send();
                 parent.remove();
             } else console.log("File not deleted!")
@@ -217,7 +217,7 @@ function setListeners() {
             const filename = parent.getAttribute("data-href") || parent.getAttribute("data-path");
             const type = filename.endsWith('/') ? 'dir' : 'file';
 
-            request.open("POST", `/share/${path}/${filename}?type=${type}`.clean());
+            request.open("POST", `/file/share/${path}/${filename}?type=${type}`.clean());
             request.onload = () => {
                 if (request.readyState === 4) {
                     if (request.status === 200) {
@@ -265,7 +265,7 @@ function upload(files) {
         }
     };
 
-    request.open('POST', `/upload/${path}`.clean(), true);
+    request.open('POST', `/file/upload/${path}`.clean(), true);
     request.send(formData);
 }
 

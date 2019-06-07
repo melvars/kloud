@@ -176,7 +176,7 @@ class FileController {
         if (userId > 0) {
             val path = "$firstParam${if (shareType == "dir") "/" else ""}"
             val accessId = databaseController.getAccessId(path, userId)
-            ctx.result("${ctx.host()}/shared?id=$accessId")
+            ctx.result("${ctx.host()}/file/shared?id=$accessId")
         }
     }
 

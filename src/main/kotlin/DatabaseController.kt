@@ -507,7 +507,7 @@ class DatabaseController {
     }
 }
 
-data class ReturnFileData(
+data class ReturnFileData (
     val userId: Int,
     val fileLocation: String,
     val isDirectory: Boolean

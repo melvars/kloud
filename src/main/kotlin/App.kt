@@ -12,7 +12,7 @@ import org.slf4j.*
 import java.net.*
 import kotlin.system.*
 
-const val debug = false
+const val debug = true
 var silent = true
 var port = 7000
 // TODO: Add abstract and secure file home support for windows/BSD/macOS
@@ -146,32 +146,32 @@ fun main(args: Array<String>) {
         /**
          * Receives and saves multipart media data
          */
-        post("/upload/*", fileController::upload, roles(Roles.USER))
+        post("/file/upload/*", fileController::upload, roles(Roles.USER))
 
         /**
          * Indexes every file of the user into the database
          */
-        get("/index", fileController::indexAll, roles(Roles.USER))
+        get("/file/index", fileController::indexAll, roles(Roles.USER))
 
         /**
          * Deletes file
          */
-        post("/delete/*", fileController::delete, roles(Roles.USER))
+        post("/file/delete/*", fileController::delete, roles(Roles.USER))
 
         /**
          * Shares file
          */
-        post("/share/*", fileController::share, roles(Roles.USER))
+        post("/file/share/*", fileController::share, roles(Roles.USER))
 
         /**
          * Shares file in directory
          */
-        post("/share", fileController::handleSharedFile, roles(Roles.USER))
+        post("/file/share", fileController::handleSharedFile, roles(Roles.USER))
 
         /**
          * Shows the shared file
          */
-        get("/shared", fileController::renderShared, roles(Roles.GUEST, Roles.USER))
+        get("/file/shared", fileController::renderShared, roles(Roles.GUEST, Roles.USER))
     }
 }
 
