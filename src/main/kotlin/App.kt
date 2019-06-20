@@ -12,7 +12,7 @@ import org.slf4j.*
 import java.net.*
 import kotlin.system.*
 
-const val debug = true
+const val debug = false
 var silent = true
 var port = 7000
 // TODO: Add abstract and secure file home support for windows/BSD/macOS

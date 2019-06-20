@@ -25,6 +25,7 @@ class DatabaseController {
         val userId = integer("userId").references(UserData.id)
         val accessId = varchar("accessId", 64).uniqueIndex()
         val isShared = bool("isShared").default(false)
+        val encryptIV = binary("iv", 16) // empty if directory
     }
 
     /**
@@ -221,7 +222,6 @@ class DatabaseController {
             try {
                 UserData.select { UserData.verification eq verificationId }.map { it[UserData.id] }[0]
             } catch (err: Exception) {
-                log.error(err.toString())
                 -1
             }
         }
@@ -235,7 +235,6 @@ class DatabaseController {
             try {
                 UserData.select { UserData.id eq userId }.map { it[UserData.darkTheme] }[0]
             } catch (err: Exception) {
-                log.error(err.toString())
                 false
             }
         }
@@ -310,7 +309,6 @@ class DatabaseController {
                 }
                 userRoles
             } catch (err: Exception) {
-                log.error(err.toString())
                 listOf(Roles.GUEST)
             }
         }
@@ -319,7 +317,7 @@ class DatabaseController {
     /**
      * Adds the uploaded file to the database
      */
-    fun addFile(fileLocation: String, usersId: Int, isDirectoryBool: Boolean = false): Boolean {
+    fun addFile(fileLocation: String, usersId: Int, isDirectoryBool: Boolean = false, iv: ByteArray = ByteArray(16)): Boolean {
         return transaction {
             try {
                 if (FileLocation.select { (FileLocation.path eq fileLocation) and (FileLocation.userId eq usersId) }.empty()) {
@@ -328,6 +326,7 @@ class DatabaseController {
                         it[userId] = usersId
                         it[accessId] = generateRandomString()
                         it[isDirectory] = isDirectoryBool
+                        it[encryptIV] = iv
                     }
                     true
                 } else {
@@ -351,6 +350,19 @@ class DatabaseController {
             } catch (err: Exception) {
                 log.error(err.toString())
                 log.warn("File does not exist!")
+            }
+        }
+    }
+
+    /**
+     * Returns IV of given file
+     */
+    fun getFileIV(fileLocation: String, userId: Int): ByteArray {
+        return transaction {
+            try {
+                FileLocation.select { (FileLocation.path eq fileLocation) and (FileLocation.userId eq userId) }.map { it[FileLocation.encryptIV] }[0]
+            } catch (err: Exception) {
+                ByteArray(16)
             }
         }
     }

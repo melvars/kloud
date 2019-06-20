@@ -1,35 +1,40 @@
 package space.anity
 
 import io.javalin.*
-import io.javalin.core.util.*
 import io.javalin.rendering.template.TemplateUtil.model
 import org.slf4j.*
 import java.io.*
 import java.nio.charset.*
 import java.nio.file.*
 import java.text.*
+import javax.crypto.*
+import javax.crypto.spec.*
 
 class FileController {
     private val log = LoggerFactory.getLogger(this.javaClass.name)
+
+    private val staticEncPwd = "asdffdsaasdffdsa"
+    private val secretKey: SecretKey = SecretKeySpec(staticEncPwd.toByteArray(), "AES")
 
     /**
      * Crawls the requested file and either renders the directory view or the file view
      */
     fun crawl(ctx: Context) {
         try {
-            val usersFileHome = "$fileHome/${userHandler.getVerifiedUserId(ctx)}"
+            val userId = userHandler.getVerifiedUserId(ctx)
+            val usersFileHome = "$fileHome/$userId"
             val firstParam = ctx.splat(0) ?: ""
             val fileLocation = "$usersFileHome/$firstParam"
-            File(usersFileHome).mkdirs()
+            File(fileLocation).mkdirs()
             when {
-                ctx.queryParam("raw") != null -> ctx.result(FileInputStream(File(fileLocation)))
+                ctx.queryParam("raw") != null -> ctx.result(decrypt(fileLocation, userId))
                 File(fileLocation).isDirectory -> {
                     val files = ArrayList<Array<String>>()
                     Files.list(Paths.get("$usersFileHome/$firstParam/")).forEach {
                         val filename = it.toString()
                             .drop(usersFileHome.length + (if (firstParam.isNotEmpty()) firstParam.length + 2 else 1))
                         val filePath = "$usersFileHome${it.toString().drop(usersFileHome.length)}"
-                        files.add(addToFileListing(filePath, filename))
+                        files.add(addToFileListing(filePath, filename, ctx))
                     }
                     files.sortWith(compareBy { it.first() })
                     ctx.render(
@@ -41,16 +46,24 @@ class FileController {
                         )
                     )
                 }
-                isHumanReadable(File(fileLocation)) -> handleHumanReadableFile(fileLocation, ctx)
+                isHumanReadable(decrypt(fileLocation, userId).toByteArray()) -> handleHumanReadableFile(fileLocation, ctx)
                 else -> {
                     ctx.contentType(Files.probeContentType(Paths.get(fileLocation)))
-                    ctx.result(FileInputStream(File(fileLocation)))
+                    ctx.result(decrypt(fileLocation, userId))
                 }
             }
         } catch (err: Exception) {
             log.error(err.toString())
             throw NotFoundResponse("Error: File or directory does not exist.")
         }
+    }
+
+    /**
+     * Decrypts a file using the [filePath] and the crypto helping class
+     */
+    private fun decrypt(fileLocation: String, userId: Int): String {
+        val cryptoHandler = CryptoHandler(secretKey, "AES/CBC/PKCS5Padding")
+        return cryptoHandler.decrypt(fileLocation, databaseController.getFileIV(fileLocation, userId))
     }
 
     /**
@@ -68,13 +81,7 @@ class FileController {
     /**
      * Checks whether the file is binary or human-readable (text)
      */
-    private fun isHumanReadable(file: File): Boolean {
-        val input = FileInputStream(file)
-        var size = input.available()
-        if (size > 1000) size = 1000
-        val data = ByteArray(size)
-        input.read(data)
-        input.close()
+    private fun isHumanReadable(data: ByteArray): Boolean {
         val text = String(data, Charset.forName("ISO-8859-1"))
         val replacedText = text.replace(
             ("[a-zA-Z0-9ßöäü\\.\\*!\"§\\$\\%&/()=\\?@~'#:,;\\+><\\|\\[\\]\\{\\}\\^°²³\\\\ \\n\\r\\t_\\-`´âêîôÂÊÔÎáéíóàèìòÁÉÍÓÀÈÌÒ©‰¢£¥€±¿»«¼½¾™ª]").toRegex(),
@@ -99,25 +106,29 @@ class FileController {
      * Saves multipart media data into requested directory
      */
     fun upload(ctx: Context) {
-        ctx.uploadedFiles("file").forEach { (_, content, name, _) ->
-            val fixedName = name.replace(":", "/") // "fix" for Firefox..
-            val userId = userHandler.getVerifiedUserId(ctx)
-            var addPath = ""
+        try {
+            ctx.uploadedFiles("file").forEach { (_, content, name, _) ->
+                val fixedName = name.replace(":", "/") // "fix" for Firefox..
+                val userId = userHandler.getVerifiedUserId(ctx)
+                val fileLocation = "$fileHome/$userId/$fixedName"
+                var addPath = ""
 
-            fixedName.split("/").forEach {
-                addPath += "$it/"
-                if (!fixedName.endsWith(it)) databaseController.addFile(addPath, userId, true)
+                val stringContent = content.bufferedReader().use { it.readText() }
+
+                fixedName.split("/").forEach {
+                    addPath += "$it/"
+                    if (!fixedName.endsWith(it)) databaseController.addFile(addPath, userId, true)
+                }
+
+                val cryptoHandler = CryptoHandler(secretKey, "AES/CBC/PKCS5Padding")
+                val iv = cryptoHandler.encrypt(stringContent, fileLocation)
+                databaseController.addFile(fixedName, userId, false, iv)
             }
 
-            if (databaseController.addFile(fixedName, userId)) {
-                FileUtil.streamToFile(
-                    content,
-                    "$fileHome/$userId/$fixedName"
-                )
-            }
+            ctx.json("success")
+        } catch (err: Exception) {
+            log.error(err.toString())
         }
-
-        ctx.json("success")
     }
 
     /**
@@ -189,7 +200,8 @@ class FileController {
         if (sharedFileData.userId > 0 && fileLocation.isNotEmpty()) {
             val sharedFileLocation = "$fileHome/${sharedFileData.userId}/$fileLocation"
             if (!sharedFileData.isDirectory) {
-                if (isHumanReadable(File(sharedFileLocation))) handleHumanReadableFile(sharedFileLocation, ctx)
+                if (isHumanReadable(decrypt(fileLocation, userHandler.getVerifiedUserId(ctx)).toByteArray()))
+                    handleHumanReadableFile(sharedFileLocation, ctx)
                 else {
                     // TODO: Fix name of downloaded file ("shared")
                     ctx.contentType(Files.probeContentType(Paths.get(sharedFileLocation)))
@@ -201,7 +213,7 @@ class FileController {
                     val filename = it.toString()
                         .drop(sharedFileLocation.length)
                     val filePath = "$sharedFileLocation$filename"
-                    files.add(addToFileListing(filePath, filename))
+                    files.add(addToFileListing(filePath, filename, ctx))
                 }
                 files.sortWith(compareBy { it.first() })
                 ctx.render(
@@ -222,15 +234,16 @@ class FileController {
     /**
      * Adds a file to the file array used in the file listing view
      */
-    private fun addToFileListing(filePath: String, filename: String): Array<String> {
-        val file = File(filePath)
+    private fun addToFileListing(fileLocation: String, filename: String, ctx: Context): Array<String> {
+        val file = File(fileLocation)
         val fileSize = if (file.isDirectory) getDirectorySize(file) else file.length()
         return arrayOf(
             // TODO: Clean up array responses
             if (file.isDirectory) "$filename/" else filename,
             humanReadableBytes(fileSize),
             SimpleDateFormat("MM/dd/yyyy HH:mm:ss").format(file.lastModified()).toString(),
-            if (file.isDirectory) "true" else isHumanReadable(file).toString(),
+            if (file.isDirectory) "true"
+            else isHumanReadable(decrypt(fileLocation, userHandler.getVerifiedUserId(ctx)).toByteArray()).toString(),
             file.isDirectory.toString(),
             fileSize.toString(), // unformatted file size
             file.lastModified().toString() // unformatted last modified date
@@ -240,15 +253,13 @@ class FileController {
     /**
      * Handles the rendering of human readable files
      */
-    private fun handleHumanReadableFile(filePath: String, ctx: Context) {
+    private fun handleHumanReadableFile(fileLocation: String, ctx: Context) {
+        val content = decrypt(fileLocation, userHandler.getVerifiedUserId(ctx))
         ctx.render(
             "fileview.rocker.html", model(
-                "content", Files.readAllLines(
-                    Paths.get(filePath),
-                    Charsets.UTF_8
-                ).joinToString(separator = "\n"),
-                "filename", File(filePath).name,
-                "extension", File(filePath).extension,
+                "content", content,
+                "filename", File(fileLocation).name,
+                "extension", File(fileLocation).extension,
                 "ctx", ctx
             )
         )

@@ -18,7 +18,7 @@ class LogFilter : Filter<ILoggingEvent>() {
         return if (event.level == Level.INFO && isUseful) {
             FilterReply.ACCEPT
         } else {
-            if ((!silent || event.message.contains("Help")) && event.level != Level.DEBUG) {
+            if ((!silent || event.message.contains("Help")) && event.level != Level.DEBUG && isUseful) {
                 FilterReply.ACCEPT
             } else {
                 FilterReply.DENY
