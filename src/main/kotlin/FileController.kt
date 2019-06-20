@@ -114,7 +114,7 @@ class FileController {
                 val fileLocation = "$fileHome/$userId/$fixedName"
                 var addPath = ""
 
-                val stringContent = content.bufferedReader().use { it.readText() }
+                val stringContent = content.bufferedReader(Charsets.UTF_8).use { it.readText() }
 
                 fixedName.split("/").forEach {
                     addPath += "$it/"

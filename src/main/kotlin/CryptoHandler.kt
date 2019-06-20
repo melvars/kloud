@@ -32,12 +32,12 @@ internal constructor(private val secretKey: SecretKey, cipher: String) {
             cipher.init(Cipher.DECRYPT_MODE, secretKey, IvParameterSpec(iv))
 
             CipherInputStream(fileIn, cipher).use { cipherIn ->
-                InputStreamReader(cipherIn).use { inputReader ->
+                InputStreamReader(cipherIn, Charsets.UTF_8).use { inputReader ->
                     BufferedReader(inputReader).use { reader ->
                         val sb = StringBuilder()
                         var line: String? = reader.readLine()
                         while (line != null) {
-                            sb.append(line)
+                            sb.append(line + "\n")
                             line = reader.readLine()
                         }
                         content = sb.toString()
