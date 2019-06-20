@@ -25,7 +25,6 @@ class DatabaseController {
         val userId = integer("userId").references(UserData.id)
         val accessId = varchar("accessId", 64).uniqueIndex()
         val isShared = bool("isShared").default(false)
-        val encryptIV = binary("iv", 16) // empty if directory
     }
 
     /**
@@ -317,7 +316,7 @@ class DatabaseController {
     /**
      * Adds the uploaded file to the database
      */
-    fun addFile(fileLocation: String, usersId: Int, isDirectoryBool: Boolean = false, iv: ByteArray = ByteArray(16)): Boolean {
+    fun addFile(fileLocation: String, usersId: Int, isDirectoryBool: Boolean = false): Boolean {
         return transaction {
             try {
                 if (FileLocation.select { (FileLocation.path eq fileLocation) and (FileLocation.userId eq usersId) }.empty()) {
@@ -326,7 +325,6 @@ class DatabaseController {
                         it[userId] = usersId
                         it[accessId] = generateRandomString()
                         it[isDirectory] = isDirectoryBool
-                        it[encryptIV] = iv
                     }
                     true
                 } else {
@@ -350,19 +348,6 @@ class DatabaseController {
             } catch (err: Exception) {
                 log.error(err.toString())
                 log.warn("File does not exist!")
-            }
-        }
-    }
-
-    /**
-     * Returns IV of given file
-     */
-    fun getFileIV(fileLocation: String, userId: Int): ByteArray {
-        return transaction {
-            try {
-                FileLocation.select { (FileLocation.path eq fileLocation) and (FileLocation.userId eq userId) }.map { it[FileLocation.encryptIV] }[0]
-            } catch (err: Exception) {
-                ByteArray(16)
             }
         }
     }
@@ -519,7 +504,7 @@ class DatabaseController {
     }
 }
 
-data class ReturnFileData (
+data class ReturnFileData(
     val userId: Int,
     val fileLocation: String,
     val isDirectory: Boolean

@@ -10,24 +10,25 @@ internal constructor(private val secretKey: SecretKey, cipher: String) {
     private val cipher: Cipher = Cipher.getInstance(cipher)
 
     @Throws(InvalidKeyException::class, IOException::class)
-    internal fun encrypt(content: String, fileName: String): ByteArray {
+    internal fun encrypt(content: String, fileName: String) {
         cipher.init(Cipher.ENCRYPT_MODE, secretKey)
-        val iv: ByteArray = cipher.iv
+        val iv = cipher.iv
 
         FileOutputStream(fileName).use { fileOut ->
+            fileOut.write(iv)
             CipherOutputStream(fileOut, cipher).use { cipherOut ->
                 cipherOut.write(content.toByteArray())
             }
         }
-
-        return iv
     }
 
     @Throws(InvalidAlgorithmParameterException::class, InvalidKeyException::class, IOException::class)
-    internal fun decrypt(fileName: String, iv: ByteArray): String {
+    internal fun decrypt(fileName: String): String {
         var content = ""
 
         FileInputStream(fileName).use { fileIn ->
+            val iv = ByteArray(16)
+            fileIn.read(iv)
             cipher.init(Cipher.DECRYPT_MODE, secretKey, IvParameterSpec(iv))
 
             CipherInputStream(fileIn, cipher).use { cipherIn ->
@@ -45,6 +46,6 @@ internal constructor(private val secretKey: SecretKey, cipher: String) {
             }
         }
 
-        return content
+        return content // TODO: Fix char handling as 1 byte in decryption
     }
 }
