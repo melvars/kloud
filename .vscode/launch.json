@@ -1,0 +1,14 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "name": "Deno",
+        "type": "node",
+        "request": "launch",
+        "cwd": "${workspaceFolder}/src/",
+        "runtimeExecutable": "deno",
+        "runtimeArgs": ["run", "--inspect", "-A", "${file}"],
+        "port": 9229
+      }
+    ]
+  }
