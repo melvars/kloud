@@ -5,7 +5,7 @@
         "name": "Deno",
         "type": "node",
         "request": "launch",
-        "cwd": "${workspaceFolder}/src/",
+        "cwd": "${workspaceFolder}",
         "runtimeExecutable": "deno",
         "runtimeArgs": ["run", "--inspect", "-A", "${file}"],
         "port": 9229
