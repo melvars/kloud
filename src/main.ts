@@ -21,10 +21,9 @@ app.static("/", "./src/public/"); // Manage static files
 app.get("/", async (c: Context) => await c.render("./src/public/index.html")); // Render index on /
 
 // Load groups dynamically
-for (let groupName in groups) {
-  // @ts-ignore
-  groups[groupName](app.group(groupName));
-}
+// deno-lint-ignore ban-ts-comment
+// @ts-ignore
+for (let groupName in groups) groups[groupName](app.group(groupName));
 
 app.start({ port });
 console.log(`Server listening on http://localhost:${port}`);
