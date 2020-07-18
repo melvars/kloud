@@ -5,7 +5,7 @@ export default class DBController {
     private client?: Client;
 
     async init() {
-        this.client = await this.connect();
+        await this.connect();
         try {
             const sql = await readFileStr("./src/db/tables.sql");
             const queries = sql.split(";");
@@ -18,9 +18,9 @@ export default class DBController {
         }
     }
 
-    async connect(): Promise<Client> {
+    async connect() {
         try {
-            return await new Client().connect({
+            this.client = await new Client().connect({
                 hostname: Deno.env.get("DBHost"),
                 username: Deno.env.get("DBUser"),
                 db: Deno.env.get("DBName"),
@@ -46,12 +46,13 @@ export default class DBController {
         if (!this.client) throw Error("Database isn't initialized yet!");
 
         try {
-            await this.client.execute(query, params);
+            return await this.client.execute(query, params);
         } catch (e) {
             throw e;
         }
     }
 
+    // deno-lint-ignore no-explicit-any
     async execute_multiple(queries: any[][]) {
         if (!this.client) throw Error("Database isn't initialized yet!");
 
