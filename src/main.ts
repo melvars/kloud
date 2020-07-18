@@ -22,6 +22,7 @@ app.static("/public/", "./src/public/"); // Manage static files
 app.get("/", async (c: Context) => await c.render("./src/views/index.html")); // Render index on /
 
 app.get("/files/*", handlePath);
+app.get("/files/", handlePath);
 
 // Load groups dynamically
 // deno-lint-ignore ban-ts-comment
