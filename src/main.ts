@@ -5,8 +5,12 @@ import { renderFile } from "https://deno.land/x/dejs/mod.ts";
 import * as groups from "./groups/index.ts";
 import DBController from "./db/DBController.ts";
 
+let dbc: DBController;
 // Ugly solution
-(async () => await new DBController().init())();
+(async () => {
+    dbc = new DBController();
+    await dbc.init();
+})();
 
 const port = parseInt(Deno.env.get("PORT") || "8080");
 const app = new Application();

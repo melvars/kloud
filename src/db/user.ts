@@ -1,7 +1,9 @@
 import DBController from "./DBController.ts";
 
 class User {
-    createUser() {}
+    createUser() {
+
+    }
 }
 
 export default new User();

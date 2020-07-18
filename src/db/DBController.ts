@@ -10,7 +10,8 @@ export default class DBController {
             const sql = await readFileStr("./src/db/tables.sql");
             const queries = sql.split(";");
             queries.pop();
-            queries.forEach(async (query) => await this.execute(query));
+            for (const query of queries) await this.execute(query);
+            // queries.forEach(async (query) => await this.execute(query));
             console.log("Tables created");
         } catch (e) {
             console.error("Could not create tables");
@@ -18,7 +19,7 @@ export default class DBController {
         }
     }
 
-    async connect() {
+    async connect(): Promise<Client> {
         try {
             this.client = await new Client().connect({
                 hostname: Deno.env.get("DBHost"),
@@ -26,6 +27,7 @@ export default class DBController {
                 db: Deno.env.get("DBName"),
                 password: Deno.env.get("DBPassword"),
             });
+            return this.client;
         } catch (e) {
             console.error("Could not connect to database");
             throw e;
@@ -52,15 +54,12 @@ export default class DBController {
         }
     }
 
-    // deno-lint-ignore no-explicit-any
-    async execute_multiple(queries: any[][]) {
+    async execute_multiple(queries: (string[] | string)[][]) {
         if (!this.client) throw Error("Database isn't initialized yet!");
 
         try {
             await this.client!.transaction(async (conn) => {
-                queries.forEach(async (query) => {
-                    await conn.execute(query[0], query[1]);
-                });
+                for (const query of queries) await conn.execute(query[0] as string, query[1] as string[]); // ez
             });
         } catch (e) {
             throw e;
