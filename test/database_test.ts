@@ -11,7 +11,7 @@ Deno.test("database connection", async () => {
 
 Deno.test({
     name: "database initialization",
-    sanitizeResources: false,
+    sanitizeResources: false, // TODO: Previous bug!
     async fn() {
         await controller.init();
     },
@@ -19,7 +19,7 @@ Deno.test({
 
 Deno.test({
     name: "database table creation",
-    sanitizeResources: false,
+    sanitizeResources: false, // TODO: Previous bug!
     async fn() {
         await controller.execute("DROP TABLE IF EXISTS test");
         await controller.execute("CREATE TABLE test (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(16) UNIQUE)");
@@ -28,7 +28,7 @@ Deno.test({
 
 Deno.test({
     name: "database variable arguments",
-    sanitizeResources: false,
+    sanitizeResources: false, // TODO: Previous bug!
     async fn() {
         await controller.execute("INSERT INTO test(name) VALUES(?)", ["Melvin"]);
         assertThrowsAsync(
@@ -42,7 +42,7 @@ Deno.test({
 
 Deno.test({
     name: "database multiple statements",
-    sanitizeResources: false,
+    sanitizeResources: false, // TODO: Previous bug!
     async fn() {
         await controller.execute_multiple([
             ["DELETE FROM test WHERE ?? = ?", ["name", "Melvin"]],
@@ -53,7 +53,7 @@ Deno.test({
 
 Deno.test({
     name: "database select statements",
-    sanitizeResources: false,
+    sanitizeResources: false, // TODO: Previous bug!
     async fn() {
         const element = await controller.query("SELECT ?? FROM ?? WHERE id=?", ["name", "test", "4"]);
         assert(element[0].name == "Melvin");
@@ -62,9 +62,9 @@ Deno.test({
 
 Deno.test({
     name: "database select statements",
-    sanitizeResources: false,
+    sanitizeResources: false, // TODO: Previous bug!
     async fn() {
-        await controller.execute("DROP TABLE test");
-        await controller.close();
+        //await controller.execute("DROP TABLE test");
+        await controller.close(); // TODO: Fix 'Bad resource ID'!
     },
 });
