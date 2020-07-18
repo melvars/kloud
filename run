@@ -1,3 +1,4 @@
 #!/usr/bin/env sh
 
-deno run -q --allow-net --allow-env --allow-read --unstable src/main.ts
+deno test test/ &&
+    deno run -q --allow-net --allow-env --allow-read --unstable src/main.ts

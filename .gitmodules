@@ -1,0 +1,4 @@
+[submodule "src/abc"]
+	path = src/abc
+	url = git@github.com:LarsVomMars/abc.git
+	branch = std

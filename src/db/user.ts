@@ -1,6 +1,7 @@
 import DBController from "./DBController.ts";
 
-class User extends DBController {
+class User {
+    createUser() {}
 }
 
 export default new User();

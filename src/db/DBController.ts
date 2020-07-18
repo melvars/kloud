@@ -34,10 +34,10 @@ export default class DBController {
         }
     }
 
-    async execute(query: string) {
+    async execute(query: string, params?: string[]) {
         if (this.client) {
             try {
-                return await this.client.execute(query);
+                return await this.client.execute(query, params);
             } catch (e) {
                 throw e;
             }
@@ -45,11 +45,15 @@ export default class DBController {
     }
 
     async execute_multiple(queries: string[]) {
-        await this.client!.transaction(async (conn) => {
-            queries.forEach(async (query) => {
-                await conn.execute(query);
+        try {
+            return await this.client!.transaction(async (conn) => {
+                queries.forEach(async (query) => {
+                    await conn.execute(query);
+                });
             });
-        });
+        } catch (e) {
+            throw e;
+        }
     }
 
     async close() {
