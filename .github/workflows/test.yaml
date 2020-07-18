@@ -21,8 +21,8 @@ jobs:
         uses: denolib/setup-deno@master
         with:
           deno-version: ${{ matrix.deno_version }}
-      - name: Format check Deno Module
-        run: deno fmt --check
+      # - name: Format check Deno Module
+      #   run: deno fmt --check
       - name: Lint Deno Module
         run: deno lint --unstable
       - name: Test Deno Module

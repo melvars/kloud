@@ -6,19 +6,19 @@ import * as groups from "./groups/index.ts";
 import DBController from "./db/DBController.ts";
 
 // Ugly solution
-(async () => await (new DBController()).init())();
+(async () => await new DBController().init())();
 
 const port = parseInt(Deno.env.get("PORT") || "8080");
 const app = new Application();
 
 app.renderer = {
-  render<T>(name: string, data: T): Promise<Deno.Reader> {
-    return renderFile(name, data);
-  },
+    render<T>(name: string, data: T): Promise<Deno.Reader> {
+        return renderFile(name, data);
+    },
 };
 
 app.static("/", "./src/public/"); // Manage static files
-app.get("/", async (c: Context) => await c.render("./src/public/index.html")); // Render index on /
+app.get("/", async (c: Context) => await c.render("./src/public/test.html", { name: "test" })); // Render index on /
 
 // Load groups dynamically
 // deno-lint-ignore ban-ts-comment
