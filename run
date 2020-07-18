@@ -1,4 +1,10 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
-deno test test/ &&
-    deno run -q --allow-net --allow-env --allow-read --unstable src/main.ts
+ARGS=(--allow-net --allow-env --allow-read --unstable)
+
+if grep -q "DEBUG=1" .env; then
+    deno test "${ARGS[@]}" test/ &&
+        deno run "${ARGS[@]}" src/main.ts
+else
+    deno run "${ARGS[@]}" src/main.ts
+fi
