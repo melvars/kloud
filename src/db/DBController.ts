@@ -33,19 +33,17 @@ export default class DBController {
         }
     }
 
-    async query(query: string, params?: (boolean | number | any)[]) {
+    async query(query: string, params?: (boolean | number | string)[]) {
         if (!this.client) await this.connect();
 
         try {
-            const res = await this.client!.query(query, params);
-            console.log(res);
-            return res;
+            return await this.client!.query(query, params);
         } catch (e) {
             throw e;
         }
     }
 
-    async execute(query: string, params?: (boolean | number | any)[]) {
+    async execute(query: string, params?: (boolean | number | string)[]) {
         if (!this.client) await this.connect();
 
         try {
@@ -55,7 +53,7 @@ export default class DBController {
         }
     }
 
-    async execute_multiple(queries: ((boolean | number | any)[] | string)[][]) {
+    async execute_multiple(queries: ((boolean | number | string)[] | string)[][]) {
         if (!this.client) await this.connect();
 
         try {

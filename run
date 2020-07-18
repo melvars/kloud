@@ -3,11 +3,13 @@
 ARGS=(--allow-net --allow-env --allow-read --allow-write --unstable)
 
 if grep -q "DEBUG=1" .env; then
-    deno test "${ARGS[@]}" test/ &&
+    deno lint --unstable &&
+        deno test "${ARGS[@]}" test/ &&
         echo "Tests succeeded!" &&
         deno run "${ARGS[@]}" src/main.ts
 elif grep -q "DEBUG=2" .env; then
-    deno test "${ARGS[@]}" test/ &&
+    deno lint --unstable &&
+        deno test "${ARGS[@]}" test/ &&
         echo "Tests succeeded!"
 else
     deno run "${ARGS[@]}" src/main.ts

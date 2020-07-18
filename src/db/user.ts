@@ -14,7 +14,7 @@ class User {
      * @param password
      * @param isAdmin
      */
-    async createUser(email: string, username: string, password: string, isAdmin: boolean = false): Promise<boolean> {
+    async createUser(email: string, username: string, password: string, isAdmin = false): Promise<boolean> {
         const salt = await genSalt(12);
         const passwordHash = await hash(password, salt);
         const verification = this.generateId();
@@ -32,19 +32,24 @@ class User {
     /**
      * Checks if the user provided password is correct
      * @param username
-     * @param password
+     * @param plainTextPassword
      */
-    async login(username: string, password: string) {
-        const dbUser = (
+    async login(username: string, plainTextPassword: string): Promise<loginData> {
+        const { uid, password, verification, darkTheme } = (
             await this.controller.query(
-                "SELECT id, password, verification, dark_theme, is_admin FROM users WHERE username = ?",
+                "SELECT id as uid, password, verification, dark_theme as darkTheme FROM users WHERE username = ?",
                 [username]
             )
         )[0];
-        if (compare(password, dbUser.password)) {
-            return true;
+        if (compare(plainTextPassword, password)) {
+            return {
+                success: true,
+                uid,
+                darkTheme,
+                verification,
+            };
         } else {
-            return false;
+            return { success: false };
         }
     }
 
@@ -54,7 +59,7 @@ class User {
      * @private
      */
     // TODO: Improve
-    private generateId(len: number = 64): string {
+    private generateId(len = 64): string {
         const values = new Uint8Array(len / 2);
         crypto.getRandomValues(values);
         return Array.from(values, (dec) => ("0" + dec.toString(36)).substr(-2)).join("");
