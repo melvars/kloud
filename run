@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-ARGS=(--allow-net --allow-env --allow-read --unstable)
+ARGS=(--allow-net --allow-env --allow-read --allow-write --unstable)
 
 if grep -q "DEBUG=1" .env; then
     deno test "${ARGS[@]}" test/ &&

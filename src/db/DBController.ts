@@ -11,7 +11,6 @@ export default class DBController {
             const queries = sql.split(";");
             queries.pop();
             for (const query of queries) await this.execute(query);
-            // queries.forEach(async (query) => await this.execute(query));
             console.log("Tables created");
         } catch (e) {
             console.error("Could not create tables");
@@ -34,28 +33,30 @@ export default class DBController {
         }
     }
 
-    async query(query: string, params?: string[]) {
-        if (!this.client) throw Error("Database isn't initialized yet!");
+    async query(query: string, params?: (boolean | number | any)[]) {
+        if (!this.client) await this.connect();
 
         try {
-            return await this.client.query(query, params);
+            const res = await this.client!.query(query, params);
+            console.log(res);
+            return res;
         } catch (e) {
             throw e;
         }
     }
 
-    async execute(query: string, params?: string[]) {
-        if (!this.client) throw Error("Database isn't initialized yet!");
+    async execute(query: string, params?: (boolean | number | any)[]) {
+        if (!this.client) await this.connect();
 
         try {
-            return await this.client.execute(query, params);
+            return await this.client!.execute(query, params);
         } catch (e) {
             throw e;
         }
     }
 
-    async execute_multiple(queries: (string[] | string)[][]) {
-        if (!this.client) throw Error("Database isn't initialized yet!");
+    async execute_multiple(queries: ((boolean | number | any)[] | string)[][]) {
+        if (!this.client) await this.connect();
 
         try {
             await this.client!.transaction(async (conn) => {
