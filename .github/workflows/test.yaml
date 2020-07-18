@@ -12,7 +12,7 @@ jobs:
 
     strategy:
       matrix:
-        deno_version: [1.1.3]
+        deno_version: [1.2.0]
 
     steps:
       - name: Git Checkout Deno Module
@@ -25,5 +25,18 @@ jobs:
       #   run: deno fmt --check
       - name: Lint Deno Module
         run: deno lint --unstable
+      - uses: mirromutth/mysql-action@v1.1
+        with:
+          mysql database: 'github'
+          mysql root password: 'github'
+          mysql user: 'github'
+          mysql password: 'github'
+      - run: |
+          echo 'DEBUG=2' > .env
+          echo 'PORT=8080' >> .env
+          echo 'DBUser="github"' >> .env
+          echo 'DBPassword="github"' >> .env
+          echo 'DBName="github"' >> .env
+          echo 'DBHost="localhost"' >> .env
       - name: Test Deno Module
-        run: deno test --allow-none
+        run: ./run
