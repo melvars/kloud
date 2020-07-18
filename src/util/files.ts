@@ -1,5 +1,4 @@
-import { ensureDirSync } from "https://deno.land/std/fs/mod.ts";
-import { walk } from "https://deno.land/std/fs/mod.ts";
+import { walk, ensureDirSync, existsSync } from "https://deno.land/std/fs/mod.ts";
 
 const TEMP_USER_ID = 42; // TODO: FIX
 
@@ -23,7 +22,8 @@ export const getFiles = async (path: string) => {
 
     createUserDirectory(TEMP_USER_ID);
     const dataPath: string = cleanPath(newPath);
-    console.log(dataPath);
+
+    if (!existsSync(dataPath)) return [];
 
     const files = [];
     for await (const entry of walk(dataPath)) {
