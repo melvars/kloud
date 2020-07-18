@@ -3,3 +3,5 @@
 !.vscode/launch.json
 .env
 .floo*
+
+data/
