@@ -15,8 +15,6 @@ export default class DBController {
         } catch (e) {
             console.error("Could not create tables");
             throw e;
-        } finally {
-            this.client.close();
         }
     }
 
@@ -34,21 +32,33 @@ export default class DBController {
         }
     }
 
-    async execute(query: string, params?: string[]) {
-        if (this.client) {
-            try {
-                return await this.client.execute(query, params);
-            } catch (e) {
-                throw e;
-            }
-        } else throw Error("Database isn't initialized yet!");
+    async query(query: string, params?: string[]) {
+        if (!this.client) throw Error("Database isn't initialized yet!");
+
+        try {
+            return await this.client.query(query, params);
+        } catch (e) {
+            throw e;
+        }
     }
 
-    async execute_multiple(queries: string[]) {
+    async execute(query: string, params?: string[]) {
+        if (!this.client) throw Error("Database isn't initialized yet!");
+
         try {
-            return await this.client!.transaction(async (conn) => {
+            await this.client.execute(query, params);
+        } catch (e) {
+            throw e;
+        }
+    }
+
+    async execute_multiple(queries: any[][]) {
+        if (!this.client) throw Error("Database isn't initialized yet!");
+
+        try {
+            await this.client!.transaction(async (conn) => {
                 queries.forEach(async (query) => {
-                    await conn.execute(query);
+                    await conn.execute(query[0], query[1]);
                 });
             });
         } catch (e) {
@@ -57,6 +67,8 @@ export default class DBController {
     }
 
     async close() {
+        if (!this.client) throw Error("Database isn't initialized yet!");
+
         await this.client!.close();
     }
 }

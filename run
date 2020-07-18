@@ -4,6 +4,7 @@ ARGS=(--allow-net --allow-env --allow-read --unstable)
 
 if grep -q "DEBUG=1" .env; then
     deno test "${ARGS[@]}" test/ &&
+        echo "Tests succeeded!" &&
         deno run "${ARGS[@]}" src/main.ts
 else
     deno run "${ARGS[@]}" src/main.ts
