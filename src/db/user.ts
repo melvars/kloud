@@ -54,6 +54,51 @@ class User {
     }
 
     /**
+     * Returns the user with the uid and verification
+     * TODO: Tests
+     * @param uid
+     * @param userVerification
+     */
+    async getUserByVerificationId(uid: number, userVerification: string): Promise<userData | undefined> {
+        try {
+            const user = (
+                await this.controller.query(
+                    "SELECT id, email, username, verification, dark_theme darkTheme, is_admin isAdmin FROM users WHERE id = ? AND verification = ?",
+                    [uid, userVerification]
+                )
+            )[0];
+            if (user) return user as userData;
+        } catch (e) {
+            throw e;
+        }
+    }
+
+    /**
+     * Changes the user theme
+     * @param uid
+     */
+    async changeTheme(uid: number) {
+        try {
+            await this.controller.execute("UPDATE users SET dark_theme = NOT dark_theme WHERE id = ?", [uid]);
+        } catch (e) {
+            throw e;
+        }
+    }
+
+    /**
+     * Sets admin status of a user
+     * @param uid
+     * @param isAdmin
+     */
+    async setAdminState(uid: number, isAdmin: boolean) {
+        try {
+            await this.controller.execute("UPDATE users SET is_admin = ? WHERE id = ?", [isAdmin, uid]);
+        } catch (e) {
+            throw e;
+        }
+    }
+
+    /**
      * Generate random id
      * @param len
      * @private
@@ -72,5 +117,14 @@ export interface loginData {
     success: boolean;
     uid?: number;
     verification?: string;
-    darkTheme?: string;
+    darkTheme?: boolean;
+}
+
+export interface userData {
+    id: number;
+    email: string;
+    username: string;
+    verification: string;
+    darkTheme: boolean;
+    isAdmin: boolean;
 }
