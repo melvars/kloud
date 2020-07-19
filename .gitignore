@@ -4,4 +4,8 @@
 .env
 .floo*
 
+package.json
+yarn.lock
+node_modules/
+
 data/
