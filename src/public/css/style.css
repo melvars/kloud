@@ -1,0 +1,8 @@
+@font-face {
+    font-family: "Share Tech Mono";
+    src: url("/fonts/ShareTechMono.ttf") format("TrueType");
+}
+
+body {
+    font-family: "Share Tech Mono", monospace;
+}
