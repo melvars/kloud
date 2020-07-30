@@ -1,5 +1,5 @@
 import { Client } from "https://deno.land/x/mysql/mod.ts";
-import { readFileStr } from "https://deno.land/std/fs/mod.ts";
+import * as log from "https://deno.land/std/log/mod.ts";
 
 export default class DBController {
     private client?: Client;
@@ -7,13 +7,13 @@ export default class DBController {
     async init() {
         await this.connect();
         try {
-            const sql = await readFileStr("./src/db/tables.sql");
+            const sql = await Deno.readTextFile("./src/db/tables.sql");
             const queries = sql.split(";");
             queries.pop();
             for (const query of queries) await this.execute(query);
-            console.log("Tables created");
+            log.info("Tables created");
         } catch (e) {
-            console.error("Could not create tables");
+            log.error("Could not create tables");
             throw e;
         }
     }
@@ -28,7 +28,7 @@ export default class DBController {
             });
             return this.client;
         } catch (e) {
-            console.error("Could not connect to database");
+            log.error("Could not connect to database");
             throw e;
         }
     }
