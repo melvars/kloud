@@ -1,0 +1,6 @@
+*.o
+.flavor
+.objs
+kloud.so
+assets.h
+cert
